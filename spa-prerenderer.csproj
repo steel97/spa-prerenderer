@@ -6,6 +6,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Update="docs\**\*.*" CopyToPublishDirectory="Never" />
+    <Content Update="dumps\**\*.*" CopyToPublishDirectory="Never" />
+    <Content Update="obj\**\*.*" CopyToPublishDirectory="Never" />
+    <Content Update="Properties\**\*.*" CopyToPublishDirectory="Never" />
+    <Content Update="publish\**\*.*" CopyToPublishDirectory="Never" />
+    <Content Update="wwwroot\**\*.*" CopyToPublishDirectory="Never" />
+    <Content Update="cache\**\*.*" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="PuppeteerSharp" Version="4.0.0" />
     <PackageReference Include="Wangkanai.Detection" Version="3.0.0" />
   </ItemGroup>
