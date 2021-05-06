@@ -10,7 +10,7 @@ This project aimed to help with SEO optimization for those who forget about SSR
 # Prerequisites
 1) linux or windows host
 2) (linux only) **libnss3 libgbm1**
-```apt-get install libnss3 libgbm1```
+```sudo apt-get install libnss3 libgbm1 libatk-bridge2.0-0 libcups2 libxkbcommon-x11-0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgtk-3-0 libxss1 libxshmfence1```
 3) (optional) nginx as kestrel proxy
 
 
