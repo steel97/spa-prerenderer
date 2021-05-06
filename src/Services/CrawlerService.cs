@@ -35,7 +35,6 @@ namespace SpaPrerenderer.Services
         {
             _logger.LogInformation("Preparing crawler...");
 
-            return;
             BrowserFetcher browserFetcher = null;
             try
             {
