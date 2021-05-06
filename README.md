@@ -10,7 +10,7 @@ This project aimed to help with SEO optimization for those who forget about SSR
 # Prerequisites
 1) linux or windows host
 2) (linux only) **libnss3 libgbm1**
-*apt-get install libnss3 libgbm1*
+```apt-get install libnss3 libgbm1```
 3) (optional) nginx as kestrel proxy
 
 
@@ -19,10 +19,19 @@ This project aimed to help with SEO optimization for those who forget about SSR
 Download latest release or clone github repository
 1) unpack downloaded release
 2) configure server via **appsettings.json**
-3) run release via ./spa-prerenderer on linux
+3) run release on linux via
+```./spa-prerenderer```
+or on windows
+```spa-prerenderer.exe```
 4) (optional) configure nginx proxy
 5) (optional) install as systemd service
-6) if you choose to use sources you can run server with **dotnet run**
+6) if you choose to use sources you can run server with 
+```dotnet run```
 
 
 # Configuration
+
+
+# Licenses
+1) Project uses [puppeteer-sharp](https://github.com/hardkoded/puppeteer-sharp) licensed under **MIT**
+1) Project uses [detection](https://github.com/wangkanai/Detection) licensed under **Apache License 2.0**
