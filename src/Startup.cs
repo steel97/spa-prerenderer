@@ -32,6 +32,7 @@ namespace SpaPrerenderer
 
             services.AddSingleton<ICryptoService, CryptoService>();
             services.AddSingleton<IUtilityService, UtilityService>();
+            services.AddSingleton<CacheService>();
             services.AddHostedService<CrawlerService>();
 
             services.Configure<CacheCrawler>(Configuration.GetSection("CacheCrawler"));
@@ -46,13 +47,12 @@ namespace SpaPrerenderer
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseRouting();
-
             app.UseStaticFiles(new StaticFileOptions
             {
                 ServeUnknownFileTypes = true
             });
 
+            app.UseRouting();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
@@ -64,6 +64,7 @@ namespace SpaPrerenderer
                     action = "Index"
                 });
             });
+
         }
     }
 }

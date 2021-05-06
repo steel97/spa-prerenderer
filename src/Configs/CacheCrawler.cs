@@ -7,6 +7,7 @@ namespace SpaPrerenderer.Configs
         public Puppeteer Puppeteer { get; set; }
         public int RescanInterval { get; set; }
         public int PageScanTimeout { get; set; }
+        public int PageScanWait { get; set; }
         public bool CacheToMemory { get; set; }
         public string BaseUrl { get; set; }
         public Route[] CacheRoutes { get; set; }

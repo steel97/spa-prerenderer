@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Memory;
 using PuppeteerSharp;
 using SpaPrerenderer.Configs;
 using SpaPrerenderer.Services.Interfaces;
@@ -18,13 +19,15 @@ namespace SpaPrerenderer.Services
         private readonly ILogger _logger;
         private readonly ICryptoService _cryptoService;
         private readonly IUtilityService _utilityService;
+        private readonly CacheService _cacheService;
         private readonly CacheCrawler _crawlerConfig;
 
-        public CrawlerService(ILogger<CrawlerService> logger, ICryptoService cryptoService, IUtilityService utilityService, IOptions<CacheCrawler> crawlerConfig)
+        public CrawlerService(ILogger<CrawlerService> logger, ICryptoService cryptoService, IUtilityService utilityService, CacheService cacheService, IOptions<CacheCrawler> crawlerConfig)
         {
             _logger = logger;
             _cryptoService = cryptoService;
             _utilityService = utilityService;
+            _cacheService = cacheService;
             _crawlerConfig = crawlerConfig.Value;
         }
 
@@ -32,7 +35,7 @@ namespace SpaPrerenderer.Services
         {
             _logger.LogInformation("Preparing crawler...");
 
-
+            return;
             BrowserFetcher browserFetcher = null;
             try
             {
@@ -45,6 +48,7 @@ namespace SpaPrerenderer.Services
                 _logger.LogError("Can't download browser!");
             }
 
+            var watchingTargets = new List<string>();
 
             while (!stopToken.IsCancellationRequested)
             {
@@ -58,23 +62,37 @@ namespace SpaPrerenderer.Services
                         _utilityService.PreparePlaceholderVariants(basePattern, ref crawlerTargets);
                     }
 
+                    foreach (var target in watchingTargets)
+                    {
+                        if (crawlerTargets.Contains(target)) continue;
+
+                        // Remove outdated cache
+                        if (File.Exists($"./cache/{target}.html")) File.Delete($"./cache/{target}.html");
+                        _cacheService.CrawlerCache.Remove(target);
+                    }
+
+                    watchingTargets.Clear();
+                    watchingTargets.AddRange(crawlerTargets);
+
                     await using (var browser = await GetBrowserInstance())
                     {
                         await using var page = await browser.NewPageAsync();
                         foreach (var target in crawlerTargets)
                         {
                             var targetUrl = _crawlerConfig.BaseUrl + target;
-                            var targetUrlHash = _cryptoService.ComputeStringHash(targetUrl);
+                            var targetUrlHash = _cryptoService.ComputeStringHash(target);
                             try
                             {
-                                await page.GoToAsync(targetUrl);
-                                // Should do it this way, not default puppeteer timeout
-                                await Task.Delay(_crawlerConfig.PageScanTimeout, stopToken);
+                                await page.GoToAsync(targetUrl, _crawlerConfig.PageScanTimeout);
+                                await Task.Delay(_crawlerConfig.PageScanWait, stopToken);
                                 var htmlData = await page.GetContentAsync();
 
                                 if (_crawlerConfig.CacheToMemory)
                                 {
-
+                                    _cacheService.CrawlerCache.Set<string>(targetUrlHash, htmlData, new MemoryCacheEntryOptions
+                                    {
+                                        Priority = CacheItemPriority.NeverRemove
+                                    });
                                 }
                                 else
                                 {
