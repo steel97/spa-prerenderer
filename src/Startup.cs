@@ -5,6 +5,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SpaPrerenderer.Configs;
+using SpaPrerenderer.Services;
+using SpaPrerenderer.Services.Interfaces;
 
 namespace SpaPrerenderer
 {
@@ -27,6 +29,10 @@ namespace SpaPrerenderer
                 options.Cookie.IsEssential = true;
             });
             services.AddControllers();
+
+            services.AddSingleton<ICryptoService, CryptoService>();
+            services.AddSingleton<IUtilityService, UtilityService>();
+            services.AddHostedService<CrawlerService>();
 
             services.Configure<CacheCrawler>(Configuration.GetSection("CacheCrawler"));
             services.Configure<Common>(Configuration.GetSection("Common"));

@@ -21,7 +21,7 @@ namespace SpaPrerenderer.Controllers
         public ActionResult Index(string url)
         {
             // set 404 response code if match config
-            return Ok(Request.QueryString.Value);
+            return Ok("<div></div>");
             // return file from cache if caching used
             if (_detectionService.Crawler.IsCrawler)
             {
