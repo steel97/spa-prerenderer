@@ -54,11 +54,7 @@ namespace SpaPrerenderer.Controllers
             var indexPage = "";
             if (_commonConfig.CacheHTML)
             {
-                if (_cacheService.SPACache.TryGetValue("index", out indexPage))
-                {
-
-                }
-                else
+                if (!_cacheService.SPACache.TryGetValue("index", out indexPage))
                 {
                     indexPage = System.IO.File.ReadAllText("./wwwroot/index.html");
                     _cacheService.SPACache.Set<string>("index", indexPage, new MemoryCacheEntryOptions

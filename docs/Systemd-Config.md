@@ -1,4 +1,5 @@
-# Edit systemd config with this command
+# Configuring systemd
+Edit systemd config with command below
 ```sudo nano /etc/systemd/system/prerenderer.service```
 
 # Sample configuration
