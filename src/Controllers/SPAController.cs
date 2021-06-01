@@ -51,6 +51,16 @@ namespace SpaPrerenderer.Controllers
 
             if (matchNotFound) url = "404";
 
+            var _301target = "";
+            foreach (var route in _spaConfig.Redirect.RedirectRoutes)
+            {
+                if (Regex.IsMatch("/" + url + (_spaConfig.Redirect.IncludeQueryString ? Request.QueryString : ""), route.Match))
+                {
+                    _301target = route.Target;
+                    break;
+                }
+            }
+
             var indexPage = "";
             if (_commonConfig.CacheHTML)
             {
@@ -70,6 +80,9 @@ namespace SpaPrerenderer.Controllers
 
             if (_detectionService.Crawler.IsCrawler)
             {
+                if (!string.IsNullOrEmpty(_301target))
+                    return RedirectPermanent(_301target);
+
                 var returnContent = _cacheService.GetPageContents("/" + url);
                 if (returnContent == null)
                 {
