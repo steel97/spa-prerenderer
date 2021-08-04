@@ -93,10 +93,8 @@ namespace SpaPrerenderer.Services
                                         Priority = CacheItemPriority.NeverRemove
                                     });
                                 }
-                                else
-                                {
+                                if (_crawlerConfig.CacheToFS)
                                     await File.WriteAllTextAsync($"./cache/{targetUrlHash}.html", htmlData, Encoding.UTF8, stopToken);
-                                }
                             }
                             catch (Exception ex)
                             {

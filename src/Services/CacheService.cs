@@ -52,7 +52,7 @@ namespace SpaPrerenderer.Services
                 if (CrawlerCache.TryGetValue<string>(hash, out res))
                     return res;
             }
-            else
+            if (_crawlerConfig.CacheToFS)
             {
                 if (File.Exists($"./cache/{hash}.html"))
                     return File.ReadAllText($"./cache/{hash}.html");
