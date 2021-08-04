@@ -38,7 +38,7 @@ namespace SpaPrerenderer.Services
             BrowserFetcher browserFetcher = null;
             try
             {
-                browserFetcher = new();
+                browserFetcher = new(Product.Chrome);
                 var browserInfo = await browserFetcher.DownloadAsync();
                 _logger.LogInformation($"Using browser {browserInfo.Platform} {browserInfo.Revision}");
             }
@@ -49,33 +49,27 @@ namespace SpaPrerenderer.Services
 
             var watchingTargets = new List<string>();
 
-            while (!stopToken.IsCancellationRequested)
+
+            await using (var browser = await GetBrowserInstance())
             {
-                try
+                await using var page = await browser.NewPageAsync();
+                while (!stopToken.IsCancellationRequested)
                 {
-                    // Preprocess routes, do it here because of config hot reload support
-                    var crawlerTargets = new List<string>();
-                    foreach (var route in _crawlerConfig.CacheRoutes)
+                    try
                     {
-                        var basePattern = route.Pattern;
-                        _utilityService.PreparePlaceholderVariants(basePattern, ref crawlerTargets);
-                    }
+                        // Preprocess routes, do it here because of config hot reload support
+                        var crawlerTargets = new List<string>();
+                        foreach (var route in _crawlerConfig.CacheRoutes)
+                        {
+                            var basePattern = route.Pattern;
+                            _utilityService.PreparePlaceholderVariants(basePattern, ref crawlerTargets);
+                        }
 
-                    foreach (var target in watchingTargets)
-                    {
-                        if (crawlerTargets.Contains(target)) continue;
+                        watchingTargets.Clear();
+                        watchingTargets.AddRange(crawlerTargets);
 
-                        // Remove outdated cache
-                        if (File.Exists($"./cache/{target}.html")) File.Delete($"./cache/{target}.html");
-                        _cacheService.CrawlerCache.Remove(target);
-                    }
 
-                    watchingTargets.Clear();
-                    watchingTargets.AddRange(crawlerTargets);
 
-                    await using (var browser = await GetBrowserInstance())
-                    {
-                        await using var page = await browser.NewPageAsync();
                         foreach (var target in crawlerTargets)
                         {
                             var targetUrl = _crawlerConfig.BaseUrl + target;
@@ -101,13 +95,14 @@ namespace SpaPrerenderer.Services
                                 _logger.LogError(ex, $"Can't fetch page {targetUrl}");
                             }
                         }
-                    }
 
-                    await Task.Delay(_crawlerConfig.RescanInterval, stopToken);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Crawler thrown error");
+
+                        await Task.Delay(_crawlerConfig.RescanInterval, stopToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Crawler thrown error");
+                    }
                 }
             }
         }
@@ -117,7 +112,8 @@ namespace SpaPrerenderer.Services
                 return Puppeteer.LaunchAsync(
                                 new LaunchOptions
                                 {
-                                    Headless = _crawlerConfig.Puppeteer.Headless
+                                    Headless = _crawlerConfig.Puppeteer.Headless,
+                                    Product = Product.Chrome
                                 });
             else
             {

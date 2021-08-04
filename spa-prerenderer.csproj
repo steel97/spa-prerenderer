@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PuppeteerSharp" Version="4.0.0" />
+    <PackageReference Include="PuppeteerSharp" Version="5.0.0" />
     <PackageReference Include="Wangkanai.Detection" Version="3.0.0" />
   </ItemGroup>
 
