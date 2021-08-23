@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -78,7 +79,16 @@ namespace SpaPrerenderer.Services
                             {
                                 await page.GoToAsync(targetUrl, _crawlerConfig.PageScanTimeout);
                                 await Task.Delay(_crawlerConfig.PageScanWait, stopToken);
-                                var htmlData = await page.GetContentAsync();
+                                var targetData = await page.GetContentAsync();
+
+                                // preprocess resulting html
+                                var htmlData = targetData;
+
+                                // strip unneeded data by comment
+                                htmlData = Regex.Replace(htmlData, @"<!--seo-strip-->(.*?)<!--seo-strip-end-->", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                                // strip unneeded data by tag
+                                htmlData = Regex.Replace(htmlData, @"<div class=""seo-strip"">(.*?)<\/div>", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                                htmlData = Regex.Replace(htmlData, @"<div class=""seo-strip-2""><\/div>(.*?)<div class=""seo-strip-2""><\/div>", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
 
                                 if (_crawlerConfig.CacheToMemory)
                                 {
