@@ -15,12 +15,12 @@ namespace SpaPrerenderer.Services
 
         private readonly ICryptoService _cryptoService;
         private readonly IUtilityService _utilityService;
-        private readonly CacheCrawler _crawlerConfig;
-        private readonly SPA _spaConfig;
+        private readonly CacheCrawlerConfig _crawlerConfig;
+        private readonly SPAConfig _spaConfig;
 
         public List<string> KnownRoutes = new List<string>();
 
-        public CacheService(ICryptoService cryptoService, IUtilityService utilityService, IOptions<CacheCrawler> crawlerConfig, IOptions<SPA> spaConfig)
+        public CacheService(ICryptoService cryptoService, IUtilityService utilityService, IOptions<CacheCrawlerConfig> crawlerConfig, IOptions<SPAConfig> spaConfig)
         {
             SPACache = new MemoryCache(new MemoryCacheOptions
             {

@@ -2,7 +2,7 @@ using SpaPrerenderer.Models;
 
 namespace SpaPrerenderer.Configs
 {
-    public class Common
+    public class CommonConfig
     {
         public bool CacheHTML { get; set; }
         public int CacheHTMLInterval { get; set; }

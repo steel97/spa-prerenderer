@@ -35,9 +35,10 @@ namespace SpaPrerenderer
             services.AddSingleton<CacheService>();
             services.AddHostedService<CrawlerService>();
 
-            services.Configure<CacheCrawler>(Configuration.GetSection("CacheCrawler"));
-            services.Configure<Common>(Configuration.GetSection("Common"));
-            services.Configure<SPA>(Configuration.GetSection("SPA"));
+            services.Configure<CacheCrawlerConfig>(Configuration.GetSection("CacheCrawler"));
+            services.Configure<CommonConfig>(Configuration.GetSection("Common"));
+            services.Configure<SitemapConfig>(Configuration.GetSection("Sitemap"));
+            services.Configure<SPAConfig>(Configuration.GetSection("SPA"));
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

@@ -2,7 +2,7 @@ using SpaPrerenderer.Models;
 
 namespace SpaPrerenderer.Configs
 {
-    public class CacheCrawler
+    public class CacheCrawlerConfig
     {
         public Puppeteer Puppeteer { get; set; }
         public int RescanInterval { get; set; }

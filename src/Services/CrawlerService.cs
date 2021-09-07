@@ -21,9 +21,9 @@ namespace SpaPrerenderer.Services
         private readonly ICryptoService _cryptoService;
         private readonly IUtilityService _utilityService;
         private readonly CacheService _cacheService;
-        private readonly CacheCrawler _crawlerConfig;
+        private readonly CacheCrawlerConfig _crawlerConfig;
 
-        public CrawlerService(ILogger<CrawlerService> logger, ICryptoService cryptoService, IUtilityService utilityService, CacheService cacheService, IOptions<CacheCrawler> crawlerConfig)
+        public CrawlerService(ILogger<CrawlerService> logger, ICryptoService cryptoService, IUtilityService utilityService, CacheService cacheService, IOptions<CacheCrawlerConfig> crawlerConfig)
         {
             _logger = logger;
             _cryptoService = cryptoService;

@@ -17,10 +17,10 @@ namespace SpaPrerenderer.Controllers
         private readonly ILogger _logger;
         private readonly IDetectionService _detectionService;
         private readonly CacheService _cacheService;
-        private readonly Common _commonConfig;
-        private readonly SPA _spaConfig;
+        private readonly CommonConfig _commonConfig;
+        private readonly SPAConfig _spaConfig;
 
-        public SPAController(ILogger<SPAController> logger, IDetectionService detectionService, CacheService cacheService, IOptions<Common> commonConfig, IOptions<SPA> spaConfig)
+        public SPAController(ILogger<SPAController> logger, IDetectionService detectionService, CacheService cacheService, IOptions<CommonConfig> commonConfig, IOptions<SPAConfig> spaConfig)
         {
             _logger = logger;
             _detectionService = detectionService;

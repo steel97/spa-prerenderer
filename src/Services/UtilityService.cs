@@ -8,9 +8,9 @@ namespace SpaPrerenderer.Services
 {
     public class UtilityService : IUtilityService
     {
-        private readonly Common _commonConfig;
+        private readonly CommonConfig _commonConfig;
 
-        public UtilityService(IOptions<Common> commonConfig)
+        public UtilityService(IOptions<CommonConfig> commonConfig)
         {
             _commonConfig = commonConfig.Value;
         }
