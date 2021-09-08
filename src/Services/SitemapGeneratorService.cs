@@ -166,6 +166,7 @@ namespace SpaPrerenderer.Services
                     xws.OmitXmlDeclaration = false;
                     xws.Indent = true;
                     xws.Async = true;
+                    xws.Encoding = Encoding.UTF8;
 
                     using var sw = new StringWriter();
                     using var xw = XmlWriter.Create(sw, xws);
