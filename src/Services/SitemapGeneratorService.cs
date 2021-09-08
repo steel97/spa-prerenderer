@@ -1,11 +1,9 @@
 using System;
 using System.IO;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
-using System.Xml.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -21,6 +19,11 @@ namespace SpaPrerenderer.Services
 {
     public class SitemapGeneratorService : BackgroundService
     {
+        private class Utf8StringWriter : StringWriter
+        {
+            public override Encoding Encoding { get { return Encoding.UTF8; } }
+        }
+
         private readonly XNamespace _nameSpace = "http://www.sitemaps.org/schemas/sitemap/0.9";
         private readonly XNamespace _nameSpaceAlternate = "http://www.w3.org/1999/xhtml";
 
@@ -162,17 +165,14 @@ namespace SpaPrerenderer.Services
                     // set actual sitemap
                     var sitemap = new XDocument(new XDeclaration("1.0", "utf-8", "yes"), new XElement(_nameSpace + "urlset", vset));
 
-                    XmlWriterSettings xws = new XmlWriterSettings();
+                    var xws = new XmlWriterSettings();
                     xws.OmitXmlDeclaration = false;
                     xws.Indent = true;
                     xws.Async = true;
                     xws.Encoding = Encoding.UTF8;
 
-                    using var sw = new StringWriter();
-                    using var xw = XmlWriter.Create(sw, xws);
-
-                    await sitemap.WriteToAsync(xw, stopToken);
-                    await xw.FlushAsync();
+                    using TextWriter sw = new Utf8StringWriter();
+                    await sitemap.SaveAsync(sw, SaveOptions.None, stopToken);
 
                     _cacheService.FilesCache.Set<string>("sitemap.xml", sw.ToString());
 
