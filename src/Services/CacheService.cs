@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Caching.Memory;
+using SpaPrerenderer.Models;
 using SpaPrerenderer.Configs;
 using SpaPrerenderer.Services.Interfaces;
 
@@ -10,6 +11,7 @@ namespace SpaPrerenderer.Services
 {
     public class CacheService
     {
+        public MemoryCache FilesCache { get; set; }
         public MemoryCache SPACache { get; set; }
         public MemoryCache CrawlerCache { get; set; }
 
@@ -18,10 +20,15 @@ namespace SpaPrerenderer.Services
         private readonly CacheCrawlerConfig _crawlerConfig;
         private readonly SPAConfig _spaConfig;
 
-        public List<string> KnownRoutes = new List<string>();
+        public List<PlaceholderTarget> KnownRoutes = new();
 
         public CacheService(ICryptoService cryptoService, IUtilityService utilityService, IOptions<CacheCrawlerConfig> crawlerConfig, IOptions<SPAConfig> spaConfig)
         {
+            FilesCache = new MemoryCache(new MemoryCacheOptions
+            {
+                ExpirationScanFrequency = TimeSpan.FromSeconds(10)
+            });
+
             SPACache = new MemoryCache(new MemoryCacheOptions
             {
                 ExpirationScanFrequency = TimeSpan.FromSeconds(10)
@@ -39,7 +46,7 @@ namespace SpaPrerenderer.Services
 
             foreach (var route in _spaConfig.NotFound.KnownRoutes)
             {
-                _utilityService.PreparePlaceholderVariants(route.Pattern, ref KnownRoutes);
+                _utilityService.PreparePlaceholderVariants(route.Pattern, ref KnownRoutes, route, new string[] { });
             }
         }
 

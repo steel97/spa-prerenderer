@@ -19,20 +19,36 @@ namespace SpaPrerenderer.Controllers
         private readonly CacheService _cacheService;
         private readonly CommonConfig _commonConfig;
         private readonly SPAConfig _spaConfig;
+        private readonly SitemapConfig _sitemapConfig;
 
-        public SPAController(ILogger<SPAController> logger, IDetectionService detectionService, CacheService cacheService, IOptions<CommonConfig> commonConfig, IOptions<SPAConfig> spaConfig)
+        public SPAController(ILogger<SPAController> logger, IDetectionService detectionService, CacheService cacheService, IOptions<CommonConfig> commonConfig, IOptions<SPAConfig> spaConfig, IOptions<SitemapConfig> sitemapConfig)
         {
             _logger = logger;
             _detectionService = detectionService;
             _cacheService = cacheService;
             _commonConfig = commonConfig.Value;
             _spaConfig = spaConfig.Value;
-
+            _sitemapConfig = sitemapConfig.Value;
         }
 
         [HttpGet("{*url}", Order = int.MaxValue)]
         public ActionResult Index(string url)
         {
+            // sitemap generator response
+            if (_sitemapConfig.UseSitemapGenerator)
+            {
+                var sitemapReqMatch = Regex.IsMatch("/" + url + (_spaConfig.NotFound.IncludeQueryString ? Request.QueryString : ""), _sitemapConfig.SitemapUrlPattern);
+                if (sitemapReqMatch)
+                {
+                    return new ContentResult
+                    {
+                        ContentType = "application/xml",
+                        StatusCode = (int)HttpStatusCode.OK,
+                        Content = _cacheService.FilesCache.Get<string>("sitemap.xml")
+                    };
+                }
+            }
+
             // set 404 response code if match config
             var matchNotFound = false;
             if (_spaConfig.NotFound.Use404Code)
@@ -40,7 +56,7 @@ namespace SpaPrerenderer.Controllers
                 var foundRoute = false;
                 foreach (var route in _cacheService.KnownRoutes)
                 {
-                    if (Regex.IsMatch("/" + url + (_spaConfig.NotFound.IncludeQueryString ? Request.QueryString : ""), route))
+                    if (Regex.IsMatch("/" + url + (_spaConfig.NotFound.IncludeQueryString ? Request.QueryString : ""), route.Url))
                     {
                         foundRoute = true;
                         break;
@@ -51,6 +67,7 @@ namespace SpaPrerenderer.Controllers
 
             if (matchNotFound) url = "404";
 
+            // redirects
             var _301target = "";
             foreach (var route in _spaConfig.Redirect.RedirectRoutes)
             {

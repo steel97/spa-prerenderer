@@ -48,9 +48,6 @@ namespace SpaPrerenderer.Services
                 _logger.LogError("Can't download browser!");
             }
 
-            var watchingTargets = new List<string>();
-
-
             await using (var browser = await GetBrowserInstance())
             {
                 await using var page = await browser.NewPageAsync();
@@ -59,22 +56,17 @@ namespace SpaPrerenderer.Services
                     try
                     {
                         // Preprocess routes, do it here because of config hot reload support
-                        var crawlerTargets = new List<string>();
+                        var crawlerTargets = new List<SpaPrerenderer.Models.PlaceholderTarget>();
                         foreach (var route in _crawlerConfig.CacheRoutes)
                         {
                             var basePattern = route.Pattern;
-                            _utilityService.PreparePlaceholderVariants(basePattern, ref crawlerTargets);
+                            _utilityService.PreparePlaceholderVariants(basePattern, ref crawlerTargets, route, new string[] { });
                         }
-
-                        watchingTargets.Clear();
-                        watchingTargets.AddRange(crawlerTargets);
-
-
 
                         foreach (var target in crawlerTargets)
                         {
-                            var targetUrl = _crawlerConfig.BaseUrl + target;
-                            var targetUrlHash = _cryptoService.ComputeStringHash(target);
+                            var targetUrl = _crawlerConfig.BaseUrl + target.Url;
+                            var targetUrlHash = _cryptoService.ComputeStringHash(target.Url);
                             try
                             {
                                 await page.GoToAsync(targetUrl, _crawlerConfig.PageScanTimeout);

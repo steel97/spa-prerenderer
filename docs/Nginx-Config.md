@@ -1,6 +1,7 @@
 # Configuring nginx proxy
 First you should create and enable nginx config for your website
 than edit it replace **web** with your config name
+
 ```sudo nano /etc/nginx/sites-enabled/web```
 
 Sample config below

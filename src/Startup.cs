@@ -34,6 +34,7 @@ namespace SpaPrerenderer
             services.AddSingleton<IUtilityService, UtilityService>();
             services.AddSingleton<CacheService>();
             services.AddHostedService<CrawlerService>();
+            services.AddHostedService<SitemapGeneratorService>();
 
             services.Configure<CacheCrawlerConfig>(Configuration.GetSection("CacheCrawler"));
             services.Configure<CommonConfig>(Configuration.GetSection("Common"));
