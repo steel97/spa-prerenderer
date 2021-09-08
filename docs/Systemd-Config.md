@@ -33,6 +33,7 @@ Change permissions
 Reload daemon and enable service
 
 ```sudo systemctl daemon-reload```
+
 ```sudo systemctl enable prerenderer.service```
 
 
