@@ -70,7 +70,8 @@ namespace SpaPrerenderer.Services
                             try
                             {
                                 await page.GoToAsync(targetUrl, _crawlerConfig.PageScanTimeout);
-                                await Task.Delay(_crawlerConfig.PageScanWait, stopToken);
+                                await page.WaitForTimeoutAsync(_crawlerConfig.PageScanTimeout);
+                                //await Task.Delay(_crawlerConfig.PageScanWait, stopToken);
                                 var targetData = await page.GetContentAsync();
 
                                 // preprocess resulting html
