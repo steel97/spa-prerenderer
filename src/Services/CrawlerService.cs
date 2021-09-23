@@ -69,7 +69,7 @@ namespace SpaPrerenderer.Services
                             var targetUrlHash = _cryptoService.ComputeStringHash(target.Url);
                             try
                             {
-                                await page.GoToAsync(targetUrl, _crawlerConfig.PageScanTimeout);
+                                await page.GoToAsync(targetUrl);
                                 await page.WaitForTimeoutAsync(_crawlerConfig.PageScanTimeout);
                                 //await Task.Delay(_crawlerConfig.PageScanWait, stopToken);
                                 var targetData = await page.GetContentAsync();
