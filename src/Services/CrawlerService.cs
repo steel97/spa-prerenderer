@@ -63,6 +63,7 @@ namespace SpaPrerenderer.Services
                             _utilityService.PreparePlaceholderVariants(basePattern, ref crawlerTargets, route, new string[] { });
                         }
 
+
                         foreach (var target in crawlerTargets)
                         {
                             var targetUrl = _crawlerConfig.BaseUrl + target.Url;
@@ -109,15 +110,30 @@ namespace SpaPrerenderer.Services
                 }
             }
         }
-        private Task<Browser> GetBrowserInstance()
+        private async Task<Browser> GetBrowserInstance()
         {
             if (_crawlerConfig.Puppeteer.BrowserSource == "local")
-                return Puppeteer.LaunchAsync(
+                return await Puppeteer.LaunchAsync(
                                 new LaunchOptions
                                 {
                                     Headless = _crawlerConfig.Puppeteer.Headless,
-                                    Product = Product.Chrome
-                                });
+                                    Product = Product.Chrome,
+                                    DefaultViewport = new ViewPortOptions
+                                    {
+                                        Width = 32,
+                                        Height = 32,
+                                    },
+                                    EnqueueAsyncMessages = true,
+                                    EnqueueTransportMessages = true,
+                                    IgnoreHTTPSErrors = true,
+                                    Devtools = false,
+                                    Args = new[] {
+                    "--no-sandbox",
+                    "--disable-infobars",
+                    "--disable-setuid-sandbox",
+                    "--ignore-ICertificatePolicy-errors",
+                    }
+                                }).ConfigureAwait(false);
             else
             {
                 var opts = new ConnectOptions();
@@ -126,7 +142,7 @@ namespace SpaPrerenderer.Services
                 else
                     opts.BrowserWSEndpoint = _crawlerConfig.Puppeteer.BrowserSource;
 
-                return Puppeteer.ConnectAsync(opts);
+                return await Puppeteer.ConnectAsync(opts).ConfigureAwait(false);
             }
         }
     }
