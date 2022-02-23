@@ -79,6 +79,7 @@ namespace SpaPrerenderer.Controllers
             }
 
             // internal specific
+            var inp = "/" + url;
 
             var reg1 = new Regex(@"([a-z]+)\/coin\/sero");
             if (reg1.IsMatch(inp))
