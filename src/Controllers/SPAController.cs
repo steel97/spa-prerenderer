@@ -78,6 +78,34 @@ namespace SpaPrerenderer.Controllers
                 }
             }
 
+            // internal specific
+
+            var reg1 = new Regex(@"([a-z]+)\/coin\/sero");
+            if (reg1.IsMatch(inp))
+            {
+                var matches = reg1.Matches(inp);
+                if (matches.Count > 0)
+                {
+                    var groups = matches[0].Groups; ;
+                    if (groups.Count > 1)
+                        _301target = $"/{groups[0].ToString()}/coin/veil";
+                }
+            }
+
+            var reg2 = new Regex(@"([a-z]+)\/coin\/btg");
+            if (reg2.IsMatch(inp))
+            {
+                var matches = reg2.Matches(inp);
+                if (matches.Count > 0)
+                {
+                    var groups = matches[0].Groups; ;
+                    if (groups.Count > 1)
+                        _301target = $"/{groups[0].ToString()}/coin/aion";
+                }
+            }
+
+            // end
+
             var indexPage = "";
             if (_commonConfig.CacheHTML)
             {
