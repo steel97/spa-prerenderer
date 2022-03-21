@@ -33,6 +33,8 @@ namespace SpaPrerenderer
             services.AddSingleton<ICryptoService, CryptoService>();
             services.AddSingleton<IUtilityService, UtilityService>();
             services.AddSingleton<CacheService>();
+            services.AddSingleton<StorageSingletonService>();
+            services.AddHttpClient();
             services.AddHostedService<CrawlerService>();
             services.AddHostedService<SitemapGeneratorService>();
 
