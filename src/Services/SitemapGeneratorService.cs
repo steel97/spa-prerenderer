@@ -25,7 +25,12 @@ public class SitemapGeneratorService : BackgroundService
     private readonly IOptionsMonitor<SitemapConfig> _sitemapConfig;
     private readonly StorageSingletonService _storageSingletonService;
 
-    public SitemapGeneratorService(ILogger<SitemapGeneratorService> logger, IUtilityService utilityService, CacheService cacheService, IOptionsMonitor<SitemapConfig> sitemapConfig, StorageSingletonService storageSingletonService)
+    public SitemapGeneratorService(ILogger<SitemapGeneratorService> logger,
+        IUtilityService utilityService,
+        CacheService cacheService,
+        IOptionsMonitor<SitemapConfig> sitemapConfig,
+        StorageSingletonService storageSingletonService
+    )
     {
         _logger = logger;
         _utilityService = utilityService;

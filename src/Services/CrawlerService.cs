@@ -113,6 +113,9 @@ public class CrawlerService : BackgroundService
                         {
                             _logger.LogError(ex, $"Can't fetch page {targetUrl}");
                         }
+
+                        if (stopToken.IsCancellationRequested)
+                            break;
                     }
 
                     _storageSingletonService.CrawledPages = crawledPages;

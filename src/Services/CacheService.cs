@@ -43,13 +43,21 @@ public class CacheService
 
         if (_spaConfig.CurrentValue.NotFound == null || _spaConfig.CurrentValue.NotFound.KnownRoutes == null) return;
 
-        foreach (var route in _spaConfig.CurrentValue.NotFound.KnownRoutes)
+        // actually bad thing, should me moved to service later
+        Task.Factory.StartNew(() =>
         {
-            ArgumentNullException.ThrowIfNull(route);
-            ArgumentNullException.ThrowIfNull(route.Pattern);
+            var localRoutes = new List<PlaceholderTarget>();
 
-            _utilityService.PreparePlaceholderVariants(route.Pattern, ref KnownRoutes, route, new string[] { });
-        }
+            foreach (var route in _spaConfig.CurrentValue.NotFound.KnownRoutes)
+            {
+                ArgumentNullException.ThrowIfNull(route);
+                ArgumentNullException.ThrowIfNull(route.Pattern);
+
+                _utilityService.PreparePlaceholderVariants(route.Pattern, ref localRoutes, route, new string[] { });
+            }
+
+            KnownRoutes = localRoutes;
+        }, TaskCreationOptions.LongRunning);
     }
 
     public string? GetPageContents(string path)
