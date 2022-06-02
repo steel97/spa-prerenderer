@@ -14,18 +14,18 @@ public class CrawlerService : BackgroundService
     private readonly ICryptoService _cryptoService;
     private readonly IUtilityService _utilityService;
     private readonly CacheService _cacheService;
-    private readonly CacheCrawlerConfig _crawlerConfig;
+    private readonly IOptionsMonitor<CacheCrawlerConfig> _crawlerConfig;
     private readonly StorageSingletonService _storageSingletonService;
     private readonly IHttpClientFactory _httpClientFactory;
 
-    public CrawlerService(IHttpClientFactory httpClientFactory, ILogger<CrawlerService> logger, ICryptoService cryptoService, IUtilityService utilityService, CacheService cacheService, IOptions<CacheCrawlerConfig> crawlerConfig, StorageSingletonService storageSingletonService)
+    public CrawlerService(IHttpClientFactory httpClientFactory, ILogger<CrawlerService> logger, ICryptoService cryptoService, IUtilityService utilityService, CacheService cacheService, IOptionsMonitor<CacheCrawlerConfig> crawlerConfig, StorageSingletonService storageSingletonService)
     {
         _httpClientFactory = httpClientFactory;
         _logger = logger;
         _cryptoService = cryptoService;
         _utilityService = utilityService;
         _cacheService = cacheService;
-        _crawlerConfig = crawlerConfig.Value;
+        _crawlerConfig = crawlerConfig;
         _storageSingletonService = storageSingletonService;
     }
 
@@ -56,7 +56,7 @@ public class CrawlerService : BackgroundService
             {
                 try
                 {
-                    var res = await client.GetAsync(_crawlerConfig.BaseUrl, stopToken);
+                    var res = await client.GetAsync(_crawlerConfig.CurrentValue.BaseUrl, stopToken);
                     if (res.StatusCode != System.Net.HttpStatusCode.OK)
                     {
                         _logger.LogWarning("Warning: target url is not available, response code: " + res.StatusCode);
@@ -66,9 +66,9 @@ public class CrawlerService : BackgroundService
 
                     // Preprocess routes, do it here because of config hot reload support
                     var crawlerTargets = new List<SpaPrerenderer.Models.PlaceholderTarget>();
-                    if (_crawlerConfig.CacheRoutes == null) continue;
+                    if (_crawlerConfig.CurrentValue.CacheRoutes == null) continue;
 
-                    foreach (var route in _crawlerConfig.CacheRoutes)
+                    foreach (var route in _crawlerConfig.CurrentValue.CacheRoutes)
                     {
                         var basePattern = route.Pattern ?? "";
                         _utilityService.PreparePlaceholderVariants(basePattern, ref crawlerTargets, route, new string[] { });
@@ -79,12 +79,12 @@ public class CrawlerService : BackgroundService
 
                     foreach (var target in crawlerTargets)
                     {
-                        var targetUrl = _crawlerConfig.BaseUrl + target.Url;
+                        var targetUrl = _crawlerConfig.CurrentValue.BaseUrl + target.Url;
                         var targetUrlHash = _cryptoService.ComputeStringHash(target.Url ?? "");
                         try
                         {
                             await page.GoToAsync(targetUrl);
-                            await page.WaitForTimeoutAsync(_crawlerConfig.PageScanTimeout);
+                            await page.WaitForTimeoutAsync(_crawlerConfig.CurrentValue.PageScanTimeout);
                             //await Task.Delay(_crawlerConfig.PageScanWait, stopToken);
                             var targetData = await page.GetContentAsync();
 
@@ -97,14 +97,14 @@ public class CrawlerService : BackgroundService
                             htmlData = Regex.Replace(htmlData, @"<div class=""seo-strip"">(.*?)<\/div>", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
                             htmlData = Regex.Replace(htmlData, @"<div class=""seo-strip-2""><\/div>(.*?)<div class=""seo-strip-2""><\/div>", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
 
-                            if (_crawlerConfig.CacheToMemory)
+                            if (_crawlerConfig.CurrentValue.CacheToMemory)
                             {
                                 _cacheService.CrawlerCache.Set<string>(targetUrlHash, htmlData, new MemoryCacheEntryOptions
                                 {
                                     Priority = CacheItemPriority.NeverRemove
                                 });
                             }
-                            if (_crawlerConfig.CacheToFS)
+                            if (_crawlerConfig.CurrentValue.CacheToFS)
                                 await File.WriteAllTextAsync($"./cache/{targetUrlHash}.html", htmlData, Encoding.UTF8, stopToken);
 
                             crawledPages++;
@@ -118,7 +118,7 @@ public class CrawlerService : BackgroundService
                     _storageSingletonService.CrawledPages = crawledPages;
                     _storageSingletonService.CrawleCycles++;
 
-                    await Task.Delay(_crawlerConfig.RescanInterval, stopToken);
+                    await Task.Delay(_crawlerConfig.CurrentValue.RescanInterval, stopToken);
                 }
                 catch (Exception ex)
                 {
@@ -129,11 +129,11 @@ public class CrawlerService : BackgroundService
     }
     private async Task<Browser> GetBrowserInstance()
     {
-        if (_crawlerConfig.Puppeteer?.BrowserSource == "local")
+        if (_crawlerConfig.CurrentValue.Puppeteer?.BrowserSource == "local")
             return await Puppeteer.LaunchAsync(
                             new LaunchOptions
                             {
-                                Headless = _crawlerConfig.Puppeteer.Headless,
+                                Headless = _crawlerConfig.CurrentValue.Puppeteer.Headless,
                                 Product = Product.Chrome,
                                 DefaultViewport = new ViewPortOptions
                                 {
@@ -154,10 +154,10 @@ public class CrawlerService : BackgroundService
         else
         {
             var opts = new ConnectOptions();
-            if (_crawlerConfig.Puppeteer?.BrowserSource != null && (_crawlerConfig.Puppeteer.BrowserSource.StartsWith("http") || _crawlerConfig.Puppeteer.BrowserSource.StartsWith("https")))
-                opts.BrowserURL = _crawlerConfig.Puppeteer.BrowserSource;
+            if (_crawlerConfig.CurrentValue.Puppeteer?.BrowserSource != null && (_crawlerConfig.CurrentValue.Puppeteer.BrowserSource.StartsWith("http") || _crawlerConfig.CurrentValue.Puppeteer.BrowserSource.StartsWith("https")))
+                opts.BrowserURL = _crawlerConfig.CurrentValue.Puppeteer.BrowserSource;
             else
-                opts.BrowserWSEndpoint = _crawlerConfig.Puppeteer?.BrowserSource;
+                opts.BrowserWSEndpoint = _crawlerConfig.CurrentValue.Puppeteer?.BrowserSource;
 
             return await Puppeteer.ConnectAsync(opts).ConfigureAwait(false);
         }

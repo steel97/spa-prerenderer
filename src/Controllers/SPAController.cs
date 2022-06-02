@@ -19,7 +19,13 @@ public class SPAController : ControllerBase
     private readonly SPAConfig _spaConfig;
     private readonly SitemapConfig _sitemapConfig;
 
-    public SPAController(ILogger<SPAController> logger, IDetectionService detectionService, CacheService cacheService, IOptions<CommonConfig> commonConfig, IOptions<SPAConfig> spaConfig, IOptions<SitemapConfig> sitemapConfig)
+    public SPAController(ILogger<SPAController> logger,
+        IDetectionService detectionService,
+        CacheService cacheService,
+        IOptionsSnapshot<CommonConfig> commonConfig,
+        IOptionsSnapshot<SPAConfig> spaConfig,
+        IOptionsSnapshot<SitemapConfig> sitemapConfig
+    )
     {
         _logger = logger;
         _detectionService = detectionService;

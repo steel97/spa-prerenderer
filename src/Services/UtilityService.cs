@@ -7,16 +7,16 @@ namespace SpaPrerenderer.Services;
 
 public class UtilityService : IUtilityService
 {
-    private readonly CommonConfig _commonConfig;
+    private readonly IOptionsMonitor<CommonConfig> _commonConfig;
 
-    public UtilityService(IOptions<CommonConfig> commonConfig)
+    public UtilityService(IOptionsMonitor<CommonConfig> commonConfig)
     {
-        _commonConfig = commonConfig.Value;
+        _commonConfig = commonConfig;
     }
 
     public void PreparePlaceholderVariants(string basePattern, ref List<PlaceholderTarget> results, SpaRoute routeLink, string[] placeholderWhitelist, KeyValuePair<string, string>[]? keys = null, int order = -1)
     {
-        var targetOrder = _commonConfig?.Placeholders?.Where(a => a.Order > order && (placeholderWhitelist.Contains(a.Key) || placeholderWhitelist.Count() == 0)).OrderBy(b => b.Order).FirstOrDefault();
+        var targetOrder = _commonConfig.CurrentValue?.Placeholders?.Where(a => a.Order > order && (placeholderWhitelist.Contains(a.Key) || placeholderWhitelist.Count() == 0)).OrderBy(b => b.Order).FirstOrDefault();
         if (targetOrder == null)
         {
             if (results.Count(a => a.Url == basePattern) == 0)
@@ -29,9 +29,9 @@ public class UtilityService : IUtilityService
             return;
         }
 
-        if (_commonConfig?.Placeholders == null) return;
+        if (_commonConfig.CurrentValue?.Placeholders == null) return;
 
-        foreach (var placeholder in _commonConfig?.Placeholders!)
+        foreach (var placeholder in _commonConfig.CurrentValue?.Placeholders!)
         {
             if (!placeholderWhitelist.Contains(placeholder.Key) && placeholderWhitelist.Count() > 0) continue;
             if (placeholder.Order != targetOrder.Order) continue;

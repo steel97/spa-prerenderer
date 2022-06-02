@@ -14,12 +14,12 @@ public class CacheService
 
     private readonly ICryptoService _cryptoService;
     private readonly IUtilityService _utilityService;
-    private readonly CacheCrawlerConfig _crawlerConfig;
-    private readonly SPAConfig _spaConfig;
+    private readonly IOptionsMonitor<CacheCrawlerConfig> _crawlerConfig;
+    private readonly IOptionsMonitor<SPAConfig> _spaConfig;
 
     public List<PlaceholderTarget> KnownRoutes = new();
 
-    public CacheService(ICryptoService cryptoService, IUtilityService utilityService, IOptions<CacheCrawlerConfig> crawlerConfig, IOptions<SPAConfig> spaConfig)
+    public CacheService(ICryptoService cryptoService, IUtilityService utilityService, IOptionsMonitor<CacheCrawlerConfig> crawlerConfig, IOptionsMonitor<SPAConfig> spaConfig)
     {
         FilesCache = new MemoryCache(new MemoryCacheOptions
         {
@@ -38,12 +38,12 @@ public class CacheService
 
         _cryptoService = cryptoService;
         _utilityService = utilityService;
-        _crawlerConfig = crawlerConfig.Value;
-        _spaConfig = spaConfig.Value;
+        _crawlerConfig = crawlerConfig;
+        _spaConfig = spaConfig;
 
-        if (_spaConfig.NotFound == null || _spaConfig.NotFound.KnownRoutes == null) return;
+        if (_spaConfig.CurrentValue.NotFound == null || _spaConfig.CurrentValue.NotFound.KnownRoutes == null) return;
 
-        foreach (var route in _spaConfig.NotFound.KnownRoutes)
+        foreach (var route in _spaConfig.CurrentValue.NotFound.KnownRoutes)
         {
             ArgumentNullException.ThrowIfNull(route);
             ArgumentNullException.ThrowIfNull(route.Pattern);
@@ -55,14 +55,14 @@ public class CacheService
     public string? GetPageContents(string path)
     {
         var hash = _cryptoService.ComputeStringHash(path);
-        if (_crawlerConfig.CacheToMemory)
+        if (_crawlerConfig.CurrentValue.CacheToMemory)
         {
             string? res = null;
             if (CrawlerCache.TryGetValue<string>(hash, out res))
                 return res;
         }
 
-        if (_crawlerConfig.CacheToFS)
+        if (_crawlerConfig.CurrentValue.CacheToFS)
         {
             if (File.Exists($"./cache/{hash}.html"))
                 return File.ReadAllText($"./cache/{hash}.html");

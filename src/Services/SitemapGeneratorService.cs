@@ -22,21 +22,21 @@ public class SitemapGeneratorService : BackgroundService
     private readonly ILogger _logger;
     private readonly IUtilityService _utilityService;
     private readonly CacheService _cacheService;
-    private readonly SitemapConfig _sitemapConfig;
+    private readonly IOptionsMonitor<SitemapConfig> _sitemapConfig;
     private readonly StorageSingletonService _storageSingletonService;
 
-    public SitemapGeneratorService(ILogger<SitemapGeneratorService> logger, IUtilityService utilityService, CacheService cacheService, IOptions<SitemapConfig> sitemapConfig, StorageSingletonService storageSingletonService)
+    public SitemapGeneratorService(ILogger<SitemapGeneratorService> logger, IUtilityService utilityService, CacheService cacheService, IOptionsMonitor<SitemapConfig> sitemapConfig, StorageSingletonService storageSingletonService)
     {
         _logger = logger;
         _utilityService = utilityService;
         _cacheService = cacheService;
-        _sitemapConfig = sitemapConfig.Value;
+        _sitemapConfig = sitemapConfig;
         _storageSingletonService = storageSingletonService;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stopToken)
     {
-        if (!_sitemapConfig.UseSitemapGenerator)
+        if (!_sitemapConfig.CurrentValue.UseSitemapGenerator)
         {
             _logger.LogInformation("Sitemap generator disabled.");
             return;
@@ -51,13 +51,13 @@ public class SitemapGeneratorService : BackgroundService
             try
             {
                 var sitemapTargets = new List<PlaceholderTarget>();
-                if (_sitemapConfig.Routes == null)
+                if (_sitemapConfig.CurrentValue.Routes == null)
                 {
                     await Task.Delay(10000, stopToken);
                     continue;
                 }
 
-                foreach (var route in _sitemapConfig.Routes)
+                foreach (var route in _sitemapConfig.CurrentValue.Routes)
                 {
                     var basePattern = route.Pattern ?? "";
                     _utilityService.PreparePlaceholderVariants(basePattern, ref sitemapTargets, route, new string[] { });
@@ -68,7 +68,7 @@ public class SitemapGeneratorService : BackgroundService
                 var vset = new List<object>();
                 foreach (var target in sitemapTargets)
                 {
-                    var targetUrl = _sitemapConfig.BaseUrl + target.Url;
+                    var targetUrl = _sitemapConfig.CurrentValue.BaseUrl + target.Url;
 
                     // adding elements
                     var baseAddress = new XElement(_nameSpace + "url");
@@ -94,7 +94,7 @@ public class SitemapGeneratorService : BackgroundService
                     {
                         foreach (var alternate in routeDecoded.WithAlternate)
                         {
-                            var alternateLookup = _sitemapConfig.Alternates?.Where(a => a.Id == alternate).FirstOrDefault();
+                            var alternateLookup = _sitemapConfig.CurrentValue.Alternates?.Where(a => a.Id == alternate).FirstOrDefault();
                             if (alternateLookup == null)
                             {
                                 _logger.LogWarning($"Can't find alternate definition with id: {alternate}");
@@ -144,7 +144,7 @@ public class SitemapGeneratorService : BackgroundService
                                     foreach (var elProp in alternateLookup.Props)
                                     {
                                         var val = elProp.Value ?? "";
-                                        val = val.Replace("{__url_variant}", _sitemapConfig.BaseUrl + currentUrl.Url);
+                                        val = val.Replace("{__url_variant}", _sitemapConfig.CurrentValue.BaseUrl + currentUrl.Url);
 
                                         if (target.UsedPlaceholders != null)
                                             foreach (var currentPlaceholder in target.UsedPlaceholders)
@@ -196,7 +196,7 @@ public class SitemapGeneratorService : BackgroundService
 
 
                 _storageSingletonService.SitemapCycles++;
-                await Task.Delay(_sitemapConfig.RescanConfigInterval, stopToken);
+                await Task.Delay(_sitemapConfig.CurrentValue.RescanConfigInterval, stopToken);
             }
             catch (Exception ex)
             {
