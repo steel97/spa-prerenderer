@@ -108,6 +108,7 @@ public class CrawlerService : BackgroundService
                                 await File.WriteAllTextAsync($"./cache/{targetUrlHash}.html", htmlData, Encoding.UTF8, stopToken);
 
                             crawledPages++;
+                            _storageSingletonService.CurrentlyCrawledPages = crawledPages;
                         }
                         catch (Exception ex)
                         {
