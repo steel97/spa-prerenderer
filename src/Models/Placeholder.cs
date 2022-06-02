@@ -1,9 +1,8 @@
-namespace SpaPrerenderer.Models
+namespace SpaPrerenderer.Models;
+
+public class Placeholder
 {
-    public class Placeholder
-    {
-        public string Key { get; set; }
-        public int Order { get; set; }
-        public string[] Targets { get; set; }
-    }
+    public string? Key { get; set; }
+    public int Order { get; set; }
+    public string[]? Targets { get; set; }
 }

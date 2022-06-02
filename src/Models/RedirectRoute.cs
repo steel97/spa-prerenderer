@@ -1,8 +1,7 @@
-namespace SpaPrerenderer.Models
+namespace SpaPrerenderer.Models;
+
+public class RedirectRoute
 {
-    public class RedirectRoute
-    {
-        public string Match { get; set; }
-        public string Target { get; set; }
-    }
+    public string? Match { get; set; }
+    public string? Target { get; set; }
 }

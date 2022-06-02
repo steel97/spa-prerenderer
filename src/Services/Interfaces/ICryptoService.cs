@@ -1,7 +1,6 @@
-namespace SpaPrerenderer.Services.Interfaces
+namespace SpaPrerenderer.Services.Interfaces;
+
+public interface ICryptoService
 {
-    public interface ICryptoService
-    {
-        string ComputeStringHash(string data);
-    }
+    string ComputeStringHash(string data);
 }

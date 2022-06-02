@@ -1,11 +1,10 @@
 using SpaPrerenderer.Models;
 
-namespace SpaPrerenderer.Configs
+namespace SpaPrerenderer.Configs;
+
+public class CommonConfig
 {
-    public class CommonConfig
-    {
-        public bool CacheHTML { get; set; }
-        public int CacheHTMLInterval { get; set; }
-        public Placeholder[] Placeholders { get; set; }
-    }
+    public bool CacheHTML { get; set; }
+    public int CacheHTMLInterval { get; set; }
+    public Placeholder[]? Placeholders { get; set; }
 }

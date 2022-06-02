@@ -1,8 +1,7 @@
-namespace SpaPrerenderer.Models
+namespace SpaPrerenderer.Models;
+
+public class Redirect
 {
-    public class Redirect
-    {
-        public bool IncludeQueryString { get; set; }
-        public RedirectRoute[] RedirectRoutes { get; set; }
-    }
+    public bool IncludeQueryString { get; set; }
+    public RedirectRoute[]? RedirectRoutes { get; set; }
 }

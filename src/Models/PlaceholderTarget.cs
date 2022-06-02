@@ -1,11 +1,8 @@
-using System.Collections.Generic;
+namespace SpaPrerenderer.Models;
 
-namespace SpaPrerenderer.Models
+public class PlaceholderTarget
 {
-    public class PlaceholderTarget
-    {
-        public string Url { get; set; }
-        public Route RouteLink { get; set; }
-        public KeyValuePair<string, string>[] UsedPlaceholders { get; set; }
-    }
+    public string? Url { get; set; }
+    public SpaRoute? RouteLink { get; set; }
+    public KeyValuePair<string, string>[]? UsedPlaceholders { get; set; }
 }

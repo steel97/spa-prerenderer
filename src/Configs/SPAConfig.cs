@@ -1,10 +1,9 @@
 using SpaPrerenderer.Models;
 
-namespace SpaPrerenderer.Configs
+namespace SpaPrerenderer.Configs;
+
+public class SPAConfig
 {
-    public class SPAConfig
-    {
-        public Redirect Redirect { get; set; }
-        public NotFound NotFound { get; set; }
-    }
+    public Redirect? Redirect { get; set; }
+    public NotFound? NotFound { get; set; }
 }

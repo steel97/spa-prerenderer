@@ -1,8 +1,7 @@
-namespace SpaPrerenderer.Models
+namespace SpaPrerenderer.Models;
+
+public class Prop
 {
-    public class Prop
-    {
-        public string Name { get; set; }
-        public string Value { get; set; }
-    }
+    public string? Name { get; set; }
+    public string? Value { get; set; }
 }
