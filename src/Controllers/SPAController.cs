@@ -34,6 +34,8 @@ namespace SpaPrerenderer.Controllers
         [HttpGet("{*url}", Order = int.MaxValue)]
         public ActionResult Index(string url)
         {
+            var skipCrawlerCheck = false; // for internal usage
+
             // sitemap generator response
             if (_sitemapConfig.UseSitemapGenerator)
             {
@@ -78,6 +80,41 @@ namespace SpaPrerenderer.Controllers
                 }
             }
 
+            // internal specific
+            var inp = "/" + url;
+
+            var reg1 = new Regex(@"([a-z]+)\/coin\/sero");
+            if (reg1.IsMatch(inp))
+            {
+                var matches = reg1.Matches(inp);
+                if (matches.Count > 0)
+                {
+                    var groups = matches[0].Groups;
+                    if (groups.Count > 1)
+                    {
+                        _301target = $"/{groups[1].ToString()}/coin/veil";
+                        skipCrawlerCheck = true;
+                    }
+                }
+            }
+
+            var reg2 = new Regex(@"([a-z]+)\/coin\/btg");
+            if (reg2.IsMatch(inp))
+            {
+                var matches = reg2.Matches(inp);
+                if (matches.Count > 0)
+                {
+                    var groups = matches[0].Groups;
+                    if (groups.Count > 1)
+                    {
+                        _301target = $"/{groups[1].ToString()}/coin/aion";
+                        skipCrawlerCheck = true;
+                    }
+                }
+            }
+
+            // end
+
             var indexPage = "";
             if (_commonConfig.CacheHTML)
             {
@@ -95,7 +132,7 @@ namespace SpaPrerenderer.Controllers
 
             }
 
-            if (_detectionService.Crawler.IsCrawler)
+            if (_detectionService.Crawler.IsCrawler || skipCrawlerCheck)
             {
                 if (!string.IsNullOrEmpty(_301target))
                     return RedirectPermanent(_301target);

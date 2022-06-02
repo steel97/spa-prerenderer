@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -22,14 +23,18 @@ namespace SpaPrerenderer.Services
         private readonly IUtilityService _utilityService;
         private readonly CacheService _cacheService;
         private readonly CacheCrawlerConfig _crawlerConfig;
+        private readonly StorageSingletonService _storageSingletonService;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public CrawlerService(ILogger<CrawlerService> logger, ICryptoService cryptoService, IUtilityService utilityService, CacheService cacheService, IOptions<CacheCrawlerConfig> crawlerConfig)
+        public CrawlerService(IHttpClientFactory httpClientFactory, ILogger<CrawlerService> logger, ICryptoService cryptoService, IUtilityService utilityService, CacheService cacheService, IOptions<CacheCrawlerConfig> crawlerConfig, StorageSingletonService storageSingletonService)
         {
+            _httpClientFactory = httpClientFactory;
             _logger = logger;
             _cryptoService = cryptoService;
             _utilityService = utilityService;
             _cacheService = cacheService;
             _crawlerConfig = crawlerConfig.Value;
+            _storageSingletonService = storageSingletonService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stopToken)
@@ -48,6 +53,8 @@ namespace SpaPrerenderer.Services
                 _logger.LogError("Can't download browser!");
             }
 
+            using var client = _httpClientFactory.CreateClient();
+
             await using (var browser = await GetBrowserInstance())
             {
                 await using var page = await browser.NewPageAsync();
@@ -55,6 +62,14 @@ namespace SpaPrerenderer.Services
                 {
                     try
                     {
+                        var res = await client.GetAsync(_crawlerConfig.BaseUrl);
+                        if (res.StatusCode != System.Net.HttpStatusCode.OK)
+                        {
+                            _logger.LogWarning("Warning: target url is not available, response code: " + res.StatusCode);
+                            await Task.Delay(TimeSpan.FromSeconds(10), stopToken);
+                            continue;
+                        }
+
                         // Preprocess routes, do it here because of config hot reload support
                         var crawlerTargets = new List<SpaPrerenderer.Models.PlaceholderTarget>();
                         foreach (var route in _crawlerConfig.CacheRoutes)
@@ -62,6 +77,8 @@ namespace SpaPrerenderer.Services
                             var basePattern = route.Pattern;
                             _utilityService.PreparePlaceholderVariants(basePattern, ref crawlerTargets, route, new string[] { });
                         }
+
+                        var crawledPages = 0;
 
 
                         foreach (var target in crawlerTargets)
@@ -93,6 +110,8 @@ namespace SpaPrerenderer.Services
                                 }
                                 if (_crawlerConfig.CacheToFS)
                                     await File.WriteAllTextAsync($"./cache/{targetUrlHash}.html", htmlData, Encoding.UTF8, stopToken);
+
+                                crawledPages++;
                             }
                             catch (Exception ex)
                             {
@@ -100,6 +119,8 @@ namespace SpaPrerenderer.Services
                             }
                         }
 
+                        _storageSingletonService.CrawledPages = crawledPages;
+                        _storageSingletonService.CrawleCycles++;
 
                         await Task.Delay(_crawlerConfig.RescanInterval, stopToken);
                     }

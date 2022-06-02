@@ -31,13 +31,15 @@ namespace SpaPrerenderer.Services
         private readonly IUtilityService _utilityService;
         private readonly CacheService _cacheService;
         private readonly SitemapConfig _sitemapConfig;
+        private readonly StorageSingletonService _storageSingletonService;
 
-        public SitemapGeneratorService(ILogger<SitemapGeneratorService> logger, IUtilityService utilityService, CacheService cacheService, IOptions<SitemapConfig> sitemapConfig)
+        public SitemapGeneratorService(ILogger<SitemapGeneratorService> logger, IUtilityService utilityService, CacheService cacheService, IOptions<SitemapConfig> sitemapConfig, StorageSingletonService storageSingletonService)
         {
             _logger = logger;
             _utilityService = utilityService;
             _cacheService = cacheService;
             _sitemapConfig = sitemapConfig.Value;
+            _storageSingletonService = storageSingletonService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stopToken)
@@ -177,6 +179,7 @@ namespace SpaPrerenderer.Services
                     _cacheService.FilesCache.Set<string>("sitemap.xml", sw.ToString());
 
 
+                    _storageSingletonService.SitemapCycles++;
                     await Task.Delay(_sitemapConfig.RescanConfigInterval, stopToken);
                 }
                 catch (Exception ex)
