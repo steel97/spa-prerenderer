@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Caching.Memory;
 using SpaPrerenderer.Models;
@@ -33,7 +34,7 @@ public class CacheService
 
         CrawlerCache = new MemoryCache(new MemoryCacheOptions
         {
-            ExpirationScanFrequency = TimeSpan.FromSeconds(10)
+            ExpirationScanFrequency = TimeSpan.FromHours(24)
         });
 
         _cryptoService = cryptoService;
@@ -46,17 +47,39 @@ public class CacheService
         // actually bad thing, should me moved to service later
         Task.Factory.StartNew(() =>
         {
-            var localRoutes = new List<PlaceholderTarget>();
-
-            foreach (var route in _spaConfig.CurrentValue.NotFound.KnownRoutes)
+            var routesCachePath = "./cache/known_routes.json";
+            try
             {
-                ArgumentNullException.ThrowIfNull(route);
-                ArgumentNullException.ThrowIfNull(route.Pattern);
+                if (File.Exists(routesCachePath))
+                    KnownRoutes = JsonSerializer.Deserialize<List<PlaceholderTarget>>(File.ReadAllText(routesCachePath))!;
+            }
+            catch
+            {
 
-                _utilityService.PreparePlaceholderVariants(route.Pattern, ref localRoutes, route, new string[] { });
             }
 
-            KnownRoutes = localRoutes;
+            try
+            {
+                var localRoutes = new List<PlaceholderTarget>();
+
+                foreach (var route in _spaConfig.CurrentValue.NotFound.KnownRoutes)
+                {
+                    ArgumentNullException.ThrowIfNull(route);
+                    ArgumentNullException.ThrowIfNull(route.Pattern);
+
+                    _utilityService.PreparePlaceholderVariants(route.Pattern, ref localRoutes, route, new string[] { });
+                }
+
+                // cache known routes
+                var json = JsonSerializer.Serialize(localRoutes);
+                File.WriteAllText(routesCachePath, json);
+
+                KnownRoutes = localRoutes;
+            }
+            catch
+            {
+
+            }
         }, TaskCreationOptions.LongRunning);
     }
 

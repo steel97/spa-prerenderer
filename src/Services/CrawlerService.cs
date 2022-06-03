@@ -144,8 +144,8 @@ public class CrawlerService : BackgroundService
                                     Width = 32,
                                     Height = 32,
                                 },
-                                EnqueueAsyncMessages = true,
-                                EnqueueTransportMessages = true,
+                                EnqueueAsyncMessages = false, // was true
+                                EnqueueTransportMessages = false,
                                 IgnoreHTTPSErrors = true,
                                 Devtools = false,
                                 Args = new[] {
@@ -153,6 +153,8 @@ public class CrawlerService : BackgroundService
                     "--disable-infobars",
                     "--disable-setuid-sandbox",
                     "--ignore-ICertificatePolicy-errors",
+                    "--disable-dev-shm-usage",
+                    "--js-flags=\"--max-old-space-size=1024\"" // 1.5GB of js mem
                 }
                             }).ConfigureAwait(false);
         else
