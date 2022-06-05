@@ -41,6 +41,12 @@ public class SitemapGeneratorService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stopToken)
     {
+        var changed = true;
+        _sitemapConfig.OnChange((config) =>
+        {
+            changed = true;
+        });
+
         if (!_sitemapConfig.CurrentValue.UseSitemapGenerator)
         {
             _logger.LogInformation("Sitemap generator disabled.");
@@ -55,6 +61,14 @@ public class SitemapGeneratorService : BackgroundService
         {
             try
             {
+                if (!changed)
+                {
+                    await Task.Delay(_sitemapConfig.CurrentValue.RescanConfigInterval, stopToken);
+                    continue;
+                }
+
+                changed = false;
+
                 var sitemapTargets = new List<PlaceholderTarget>();
                 if (_sitemapConfig.CurrentValue.Routes == null)
                 {
@@ -206,6 +220,15 @@ public class SitemapGeneratorService : BackgroundService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Sitemap generator thrown error");
+            }
+
+            try
+            {
+                GC.Collect();
+            }
+            catch
+            {
+
             }
         }
     }

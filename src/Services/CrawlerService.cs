@@ -51,7 +51,6 @@ public class CrawlerService : BackgroundService
 
         await using (var browser = await GetBrowserInstance())
         {
-            await using var page = await browser.NewPageAsync();
             while (!stopToken.IsCancellationRequested)
             {
                 try
@@ -76,7 +75,16 @@ public class CrawlerService : BackgroundService
 
                     var crawledPages = 0;
 
+                    try
+                    {
+                        GC.Collect();
+                    }
+                    catch
+                    {
 
+                    }
+
+                    await using var page = await browser.NewPageAsync();
                     foreach (var target in crawlerTargets)
                     {
                         var targetUrl = _crawlerConfig.CurrentValue.BaseUrl + target.Url;
