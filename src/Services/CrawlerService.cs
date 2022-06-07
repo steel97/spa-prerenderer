@@ -84,47 +84,81 @@ public class CrawlerService : BackgroundService
 
                     }
 
-                    await using var page = await browser.NewPageAsync();
-                    foreach (var target in crawlerTargets)
+                    var crawlerTargetsSplitted = new List<List<SpaPrerenderer.Models.PlaceholderTarget>>();
+
+                    if (_crawlerConfig.CurrentValue.ChunkSplit?.UseChunkSplit ?? false)
                     {
-                        var targetUrl = _crawlerConfig.CurrentValue.BaseUrl + target.Url;
-                        var targetUrlHash = _cryptoService.ComputeStringHash(target.Url ?? "");
-                        try
+                        var itemsPerPage = _crawlerConfig.CurrentValue.ChunkSplit?.ItemsPerPage ?? 10;
+                        var currentList = new List<SpaPrerenderer.Models.PlaceholderTarget>();
+                        var counter = 0;
+                        crawlerTargets.ForEach(item =>
                         {
-                            await page.GoToAsync(targetUrl);
-                            await page.WaitForTimeoutAsync(_crawlerConfig.CurrentValue.PageScanTimeout);
-                            //await Task.Delay(_crawlerConfig.PageScanWait, stopToken);
-                            var targetData = await page.GetContentAsync();
-
-                            // preprocess resulting html
-                            var htmlData = targetData;
-
-                            // strip unneeded data by comment
-                            htmlData = Regex.Replace(htmlData, @"<!--seo-strip-->(.*?)<!--seo-strip-end-->", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
-                            // strip unneeded data by tag
-                            htmlData = Regex.Replace(htmlData, @"<div class=""seo-strip"">(.*?)<\/div>", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
-                            htmlData = Regex.Replace(htmlData, @"<div class=""seo-strip-2""><\/div>(.*?)<div class=""seo-strip-2""><\/div>", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
-
-                            if (_crawlerConfig.CurrentValue.CacheToMemory)
+                            if (counter == itemsPerPage)
                             {
-                                _cacheService.CrawlerCache.Set<string>(targetUrlHash, htmlData, new MemoryCacheEntryOptions
-                                {
-                                    Priority = CacheItemPriority.NeverRemove
-                                });
+                                crawlerTargetsSplitted.Add(currentList);
+                                currentList = new List<Models.PlaceholderTarget>();
+                                counter = 0;
                             }
-                            if (_crawlerConfig.CurrentValue.CacheToFS)
-                                await File.WriteAllTextAsync($"./cache/{targetUrlHash}.html", htmlData, Encoding.UTF8, stopToken);
 
-                            crawledPages++;
-                            _storageSingletonService.CurrentlyCrawledPages = crawledPages;
-                        }
-                        catch (Exception ex)
+                            currentList.Add(item);
+
+                            counter++;
+                        });
+
+                        if (currentList.Count > 0)
                         {
-                            _logger.LogError(ex, $"Can't fetch page {targetUrl}");
+                            crawlerTargetsSplitted.Add(currentList);
+                        }
+                    }
+                    else
+                        crawlerTargetsSplitted.Add(crawlerTargets);
+
+                    foreach (var chunk in crawlerTargetsSplitted)
+                    {
+                        await using var page = await browser.NewPageAsync();
+                        foreach (var target in chunk)
+                        {
+                            var targetUrl = _crawlerConfig.CurrentValue.BaseUrl + target.Url;
+                            var targetUrlHash = _cryptoService.ComputeStringHash(target.Url ?? "");
+                            try
+                            {
+                                await page.GoToAsync(targetUrl);
+                                await page.WaitForTimeoutAsync(_crawlerConfig.CurrentValue.PageScanTimeout);
+                                //await Task.Delay(_crawlerConfig.PageScanWait, stopToken);
+                                var targetData = await page.GetContentAsync();
+
+                                // preprocess resulting html
+                                var htmlData = targetData;
+
+                                // strip unneeded data by comment
+                                htmlData = Regex.Replace(htmlData, @"<!--seo-strip-->(.*?)<!--seo-strip-end-->", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                                // strip unneeded data by tag
+                                htmlData = Regex.Replace(htmlData, @"<div class=""seo-strip"">(.*?)<\/div>", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                                htmlData = Regex.Replace(htmlData, @"<div class=""seo-strip-2""><\/div>(.*?)<div class=""seo-strip-2""><\/div>", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+                                if (_crawlerConfig.CurrentValue.CacheToMemory)
+                                {
+                                    _cacheService.CrawlerCache.Set<string>(targetUrlHash, htmlData, new MemoryCacheEntryOptions
+                                    {
+                                        Priority = CacheItemPriority.NeverRemove
+                                    });
+                                }
+                                if (_crawlerConfig.CurrentValue.CacheToFS)
+                                    await File.WriteAllTextAsync($"./cache/{targetUrlHash}.html", htmlData, Encoding.UTF8, stopToken);
+
+                                crawledPages++;
+                                _storageSingletonService.CurrentlyCrawledPages = crawledPages;
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, $"Can't fetch page {targetUrl}");
+                            }
+
+                            if (stopToken.IsCancellationRequested)
+                                break;
                         }
 
-                        if (stopToken.IsCancellationRequested)
-                            break;
+
                     }
 
                     _storageSingletonService.CrawledPages = crawledPages;

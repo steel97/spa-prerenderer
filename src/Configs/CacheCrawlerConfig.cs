@@ -11,5 +11,12 @@ public class CacheCrawlerConfig
     public bool CacheToMemory { get; set; }
     public bool CacheToFS { get; set; }
     public string? BaseUrl { get; set; }
+    public ChunkSplit? ChunkSplit { get; set; }
     public SpaRoute[]? CacheRoutes { get; set; }
+}
+
+public class ChunkSplit
+{
+    public bool UseChunkSplit { get; set; }
+    public int ItemsPerPage { get; set; }
 }
