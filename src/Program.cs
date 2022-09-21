@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Rewrite;
 using SpaPrerenderer.Configs;
 using SpaPrerenderer.Services;
 using SpaPrerenderer.Services.Interfaces;
@@ -28,22 +29,32 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 
+var sitemapProxy = app.Configuration.GetSection("Sitemap:SitemapProxy").Get<SitemapProxy?>();
+
+if (sitemapProxy != null && sitemapProxy.From != null && sitemapProxy.To != null)
+{
+    Console.WriteLine(sitemapProxy.From);
+    app.UseRewriter(new RewriteOptions()
+        .AddRewrite(sitemapProxy.From, sitemapProxy.To, skipRemainingRules: false));
+}
+
 app.UseStaticFiles(new StaticFileOptions
 {
     ServeUnknownFileTypes = true
 });
 
+
 app.UseRouting();
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllerRoute(
-    name: "SPA",
-    pattern: "{*url}",
-    defaults: new
-    {
-        controller = "SPA",
-        action = "Index"
-    });
+        name: "SPA",
+        pattern: "{*url}",
+        defaults: new
+        {
+            controller = "SPA",
+            action = "Index"
+        });
 });
 
 app.Run();

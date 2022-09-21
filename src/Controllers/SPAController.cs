@@ -122,6 +122,21 @@ public class SPAController : ControllerBase
             }
         }
 
+        var reg3 = new Regex(@"([a-z]+)\/coin\/eth");
+        if (reg3.IsMatch(inp))
+        {
+            var matches = reg3.Matches(inp);
+            if (matches.Count > 0)
+            {
+                var groups = matches[0].Groups;
+                if (groups.Count > 1)
+                {
+                    _301target = $"/{groups[1].ToString()}/coin/ethw";
+                    skipCrawlerCheck = true;
+                }
+            }
+        }
+
         // end
 
         var indexPage = "";
