@@ -92,7 +92,7 @@ public class SPAController : ControllerBase
         // internal specific
         var inp = "/" + url;
 
-        var reg1 = new Regex(@"([a-z]+)\/coin\/sero");
+        var reg1 = new Regex(@"([a-z]+)\/coin\/sero\/?$");
         if (reg1.IsMatch(inp))
         {
             var matches = reg1.Matches(inp);
@@ -107,7 +107,7 @@ public class SPAController : ControllerBase
             }
         }
 
-        var reg2 = new Regex(@"([a-z]+)\/coin\/btg");
+        var reg2 = new Regex(@"([a-z]+)\/coin\/btg\/?$");
         if (reg2.IsMatch(inp))
         {
             var matches = reg2.Matches(inp);
@@ -122,7 +122,7 @@ public class SPAController : ControllerBase
             }
         }
 
-        var reg3 = new Regex(@"([a-z]+)\/coin\/eth");
+        var reg3 = new Regex(@"([a-z]+)\/coin\/eth\/?$");
         if (reg3.IsMatch(inp))
         {
             var matches = reg3.Matches(inp);
