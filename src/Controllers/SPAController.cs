@@ -137,6 +137,36 @@ public class SPAController : ControllerBase
             }
         }
 
+        var reg4 = new Regex(@"([a-z]+)\/coin\/mwc\/?$");
+        if (reg4.IsMatch(inp))
+        {
+            var matches = reg4.Matches(inp);
+            if (matches.Count > 0)
+            {
+                var groups = matches[0].Groups;
+                if (groups.Count > 1)
+                {
+                    _301target = $"/{groups[1].ToString()}/coin/ctxc";
+                    skipCrawlerCheck = true;
+                }
+            }
+        }
+
+        var reg5 = new Regex(@"([a-z]+)\/coin\/grin\/?$");
+        if (reg5.IsMatch(inp))
+        {
+            var matches = reg5.Matches(inp);
+            if (matches.Count > 0)
+            {
+                var groups = matches[0].Groups;
+                if (groups.Count > 1)
+                {
+                    _301target = $"/{groups[1].ToString()}/coin/ctxc";
+                    skipCrawlerCheck = true;
+                }
+            }
+        }
+
         // end
 
         var indexPage = "";
