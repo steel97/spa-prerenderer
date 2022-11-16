@@ -167,6 +167,21 @@ public class SPAController : ControllerBase
             }
         }
 
+        var reg6 = new Regex(@"([a-z]+)\/crypto-exchanges\/ftx\/?$");
+        if (reg6.IsMatch(inp))
+        {
+            var matches = reg6.Matches(inp);
+            if (matches.Count > 0)
+            {
+                var groups = matches[0].Groups;
+                if (groups.Count > 1)
+                {
+                    _301target = $"/{groups[1].ToString()}/crypto-exchanges/bybit";
+                    skipCrawlerCheck = true;
+                }
+            }
+        }
+
         // end
 
         var indexPage = "";
