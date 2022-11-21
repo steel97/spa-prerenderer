@@ -182,19 +182,11 @@ public class SPAController : ControllerBase
             }
         }
 
-        var reg7 = new Regex(@"\/?$");
+        var reg7 = new Regex(@"^\/?$");
         if (reg7.IsMatch(inp))
         {
-            var matches = reg7.Matches(inp);
-            if (matches.Count > 0)
-            {
-                var groups = matches[0].Groups;
-                if (groups.Count > 1)
-                {
-                    _301target = $"/en";
-                    //skipCrawlerCheck = true;
-                }
-            }
+            _301target = $"/en";
+            skipCrawlerCheck = true;
         }
 
         // end
