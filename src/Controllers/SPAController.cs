@@ -167,6 +167,21 @@ public class SPAController : ControllerBase
             }
         }
 
+        var reg8 = new Regex(@"([a-z]+)\/coin\/pink\/?$");
+        if (reg8.IsMatch(inp))
+        {
+            var matches = reg8.Matches(inp);
+            if (matches.Count > 0)
+            {
+                var groups = matches[0].Groups;
+                if (groups.Count > 1)
+                {
+                    _301target = $"/{groups[1].ToString()}/coin/ethw";
+                    skipCrawlerCheck = true;
+                }
+            }
+        }
+
         var reg6 = new Regex(@"([a-z]+)\/crypto-exchanges\/ftx\/?$");
         if (reg6.IsMatch(inp))
         {
@@ -180,6 +195,12 @@ public class SPAController : ControllerBase
                     skipCrawlerCheck = true;
                 }
             }
+        }
+
+        if (inp.EndsWith("/"))
+        {
+            _301target = inp[..^1];
+            skipCrawlerCheck = true;
         }
 
         var reg7 = new Regex(@"^\/?$");
