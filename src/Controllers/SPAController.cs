@@ -182,6 +182,51 @@ public class SPAController : ControllerBase
             }
         }
 
+        var reg9 = new Regex(@"([a-z]+)\/coin\/ethf\/?$");
+        if (reg9.IsMatch(inp))
+        {
+            var matches = reg9.Matches(inp);
+            if (matches.Count > 0)
+            {
+                var groups = matches[0].Groups;
+                if (groups.Count > 1)
+                {
+                    _301target = $"/{groups[1].ToString()}/coin/ethw";
+                    skipCrawlerCheck = true;
+                }
+            }
+        }
+
+        var reg10 = new Regex(@"([a-z]+)\/coin\/xmr\/?$");
+        if (reg10.IsMatch(inp))
+        {
+            var matches = reg10.Matches(inp);
+            if (matches.Count > 0)
+            {
+                var groups = matches[0].Groups;
+                if (groups.Count > 1)
+                {
+                    _301target = $"/{groups[1].ToString()}/coin/rtm";
+                    skipCrawlerCheck = true;
+                }
+            }
+        }
+
+        var reg11 = new Regex(@"([a-z]+)\/coin\/aion\/?$");
+        if (reg11.IsMatch(inp))
+        {
+            var matches = reg11.Matches(inp);
+            if (matches.Count > 0)
+            {
+                var groups = matches[0].Groups;
+                if (groups.Count > 1)
+                {
+                    _301target = $"/{groups[1].ToString()}/coin/firo";
+                    skipCrawlerCheck = true;
+                }
+            }
+        }
+
         var reg6 = new Regex(@"([a-z]+)\/crypto-exchanges\/ftx\/?$");
         if (reg6.IsMatch(inp))
         {
