@@ -242,6 +242,21 @@ public class SPAController : ControllerBase
             }
         }
 
+        var reg0 = new Regex(@"([a-z]+)\/crypto-exchanges\/bingx\/?$");
+        if (reg0.IsMatch(inp))
+        {
+            var matches = reg0.Matches(inp);
+            if (matches.Count > 0)
+            {
+                var groups = matches[0].Groups;
+                if (groups.Count > 1)
+                {
+                    _301target = $"/{groups[1].ToString()}/crypto-exchanges/mexc";
+                    skipCrawlerCheck = true;
+                }
+            }
+        }
+
         if (inp.EndsWith("/"))
         {
             _301target = inp[..^1];
