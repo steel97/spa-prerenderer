@@ -8,7 +8,7 @@ using SpaPrerenderer.Services.Interfaces;
 
 namespace SpaPrerenderer.Services;
 
-public class CrawlerService : BackgroundService
+public partial class CrawlerService : BackgroundService
 {
     private readonly ILogger _logger;
     private readonly ICryptoService _cryptoService;
@@ -40,7 +40,7 @@ public class CrawlerService : BackgroundService
         {
             browserFetcher = new(Product.Chrome);
             var browserInfo = await browserFetcher.DownloadAsync();
-            _logger.LogInformation($"Using browser {browserInfo.Platform} {browserInfo.Revision}");
+            _logger.LogInformation("Using browser {platform} {revision}", browserInfo.Platform, browserInfo.Revision);
         }
         catch
         {
@@ -49,127 +49,125 @@ public class CrawlerService : BackgroundService
 
         using var client = _httpClientFactory.CreateClient();
 
-        await using (var browser = await GetBrowserInstance())
+        await using var browser = await GetBrowserInstance();
+        while (!stopToken.IsCancellationRequested)
         {
-            while (!stopToken.IsCancellationRequested)
+            try
             {
+                var res = await client.GetAsync(_crawlerConfig.CurrentValue.BaseUrl, stopToken);
+                if (res.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    _logger.LogWarning("Warning: target url is not available, response code: {statusCode}", res.StatusCode);
+                    await Task.Delay(TimeSpan.FromSeconds(10), stopToken);
+                    continue;
+                }
+
+                // Preprocess routes, do it here because of config hot reload support
+                var crawlerTargets = new List<Models.PlaceholderTarget>();
+                if (_crawlerConfig.CurrentValue.CacheRoutes == null) continue;
+
+                foreach (var route in _crawlerConfig.CurrentValue.CacheRoutes)
+                {
+                    var basePattern = route.Pattern ?? "";
+                    _utilityService.PreparePlaceholderVariants(basePattern, ref crawlerTargets, route, Array.Empty<string>());
+                }
+
+                var crawledPages = 0;
+
                 try
                 {
-                    var res = await client.GetAsync(_crawlerConfig.CurrentValue.BaseUrl, stopToken);
-                    if (res.StatusCode != System.Net.HttpStatusCode.OK)
+                    GC.Collect();
+                }
+                catch
+                {
+
+                }
+
+                var crawlerTargetsSplitted = new List<List<Models.PlaceholderTarget>>();
+
+                if (_crawlerConfig.CurrentValue.ChunkSplit?.UseChunkSplit ?? false)
+                {
+                    var itemsPerPage = _crawlerConfig.CurrentValue.ChunkSplit?.ItemsPerPage ?? 10;
+                    var currentList = new List<Models.PlaceholderTarget>();
+                    var counter = 0;
+                    crawlerTargets.ForEach(item =>
                     {
-                        _logger.LogWarning("Warning: target url is not available, response code: " + res.StatusCode);
-                        await Task.Delay(TimeSpan.FromSeconds(10), stopToken);
-                        continue;
-                    }
-
-                    // Preprocess routes, do it here because of config hot reload support
-                    var crawlerTargets = new List<SpaPrerenderer.Models.PlaceholderTarget>();
-                    if (_crawlerConfig.CurrentValue.CacheRoutes == null) continue;
-
-                    foreach (var route in _crawlerConfig.CurrentValue.CacheRoutes)
-                    {
-                        var basePattern = route.Pattern ?? "";
-                        _utilityService.PreparePlaceholderVariants(basePattern, ref crawlerTargets, route, new string[] { });
-                    }
-
-                    var crawledPages = 0;
-
-                    try
-                    {
-                        GC.Collect();
-                    }
-                    catch
-                    {
-
-                    }
-
-                    var crawlerTargetsSplitted = new List<List<SpaPrerenderer.Models.PlaceholderTarget>>();
-
-                    if (_crawlerConfig.CurrentValue.ChunkSplit?.UseChunkSplit ?? false)
-                    {
-                        var itemsPerPage = _crawlerConfig.CurrentValue.ChunkSplit?.ItemsPerPage ?? 10;
-                        var currentList = new List<SpaPrerenderer.Models.PlaceholderTarget>();
-                        var counter = 0;
-                        crawlerTargets.ForEach(item =>
-                        {
-                            if (counter == itemsPerPage)
-                            {
-                                crawlerTargetsSplitted.Add(currentList);
-                                currentList = new List<Models.PlaceholderTarget>();
-                                counter = 0;
-                            }
-
-                            currentList.Add(item);
-
-                            counter++;
-                        });
-
-                        if (currentList.Count > 0)
+                        if (counter == itemsPerPage)
                         {
                             crawlerTargetsSplitted.Add(currentList);
+                            currentList = new List<Models.PlaceholderTarget>();
+                            counter = 0;
                         }
-                    }
-                    else
-                        crawlerTargetsSplitted.Add(crawlerTargets);
 
-                    foreach (var chunk in crawlerTargetsSplitted)
+                        currentList.Add(item);
+
+                        counter++;
+                    });
+
+                    if (currentList.Count > 0)
                     {
-                        await using var page = await browser.NewPageAsync();
-                        foreach (var target in chunk)
+                        crawlerTargetsSplitted.Add(currentList);
+                    }
+                }
+                else
+                    crawlerTargetsSplitted.Add(crawlerTargets);
+
+                foreach (var chunk in crawlerTargetsSplitted)
+                {
+                    await using var page = await browser.NewPageAsync();
+                    foreach (var target in chunk)
+                    {
+                        var targetUrl = _crawlerConfig.CurrentValue.BaseUrl + target.Url;
+                        var targetUrlHash = _cryptoService.ComputeStringHash(target.Url ?? "");
+                        try
                         {
-                            var targetUrl = _crawlerConfig.CurrentValue.BaseUrl + target.Url;
-                            var targetUrlHash = _cryptoService.ComputeStringHash(target.Url ?? "");
-                            try
+                            await page.GoToAsync(targetUrl);
+                            await page.WaitForTimeoutAsync(_crawlerConfig.CurrentValue.PageScanTimeout);
+                            //await Task.Delay(_crawlerConfig.PageScanWait, stopToken);
+                            var targetData = await page.GetContentAsync();
+
+                            // preprocess resulting html
+                            var htmlData = targetData;
+
+                            // strip unneeded data by comment
+                            htmlData = SeoStrip1Regex().Replace(htmlData, "");
+                            // strip unneeded data by tag
+                            htmlData = SeoStrip2Regex().Replace(htmlData, "");
+                            htmlData = SeoStrip3Regex().Replace(htmlData, "");
+
+                            if (_crawlerConfig.CurrentValue.CacheToMemory)
                             {
-                                await page.GoToAsync(targetUrl);
-                                await page.WaitForTimeoutAsync(_crawlerConfig.CurrentValue.PageScanTimeout);
-                                //await Task.Delay(_crawlerConfig.PageScanWait, stopToken);
-                                var targetData = await page.GetContentAsync();
-
-                                // preprocess resulting html
-                                var htmlData = targetData;
-
-                                // strip unneeded data by comment
-                                htmlData = Regex.Replace(htmlData, @"<!--seo-strip-->(.*?)<!--seo-strip-end-->", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
-                                // strip unneeded data by tag
-                                htmlData = Regex.Replace(htmlData, @"<div class=""seo-strip"">(.*?)<\/div>", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
-                                htmlData = Regex.Replace(htmlData, @"<div class=""seo-strip-2""><\/div>(.*?)<div class=""seo-strip-2""><\/div>", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
-
-                                if (_crawlerConfig.CurrentValue.CacheToMemory)
+                                _cacheService.CrawlerCache.Set(targetUrlHash, htmlData, new MemoryCacheEntryOptions
                                 {
-                                    _cacheService.CrawlerCache.Set<string>(targetUrlHash, htmlData, new MemoryCacheEntryOptions
-                                    {
-                                        Priority = CacheItemPriority.NeverRemove
-                                    });
-                                }
-                                if (_crawlerConfig.CurrentValue.CacheToFS)
-                                    await File.WriteAllTextAsync($"./cache/{targetUrlHash}.html", htmlData, Encoding.UTF8, stopToken);
-
-                                crawledPages++;
-                                _storageSingletonService.CurrentlyCrawledPages = crawledPages;
+                                    Priority = CacheItemPriority.NeverRemove
+                                });
                             }
-                            catch (Exception ex)
-                            {
-                                _logger.LogError(ex, $"Can't fetch page {targetUrl}");
-                            }
+                            if (_crawlerConfig.CurrentValue.CacheToFS)
+                                await File.WriteAllTextAsync($"./cache/{targetUrlHash}.html", htmlData, Encoding.UTF8, stopToken);
 
-                            if (stopToken.IsCancellationRequested)
-                                break;
+                            crawledPages++;
+                            _storageSingletonService.CurrentlyCrawledPages = crawledPages;
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Can't fetch page {url}", targetUrl);
                         }
 
-
+                        if (stopToken.IsCancellationRequested)
+                            break;
                     }
 
-                    _storageSingletonService.CrawledPages = crawledPages;
-                    _storageSingletonService.CrawleCycles++;
 
-                    await Task.Delay(_crawlerConfig.CurrentValue.RescanInterval, stopToken);
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Crawler thrown error");
-                }
+
+                _storageSingletonService.CrawledPages = crawledPages;
+                _storageSingletonService.CrawleCycles++;
+
+                await Task.Delay(_crawlerConfig.CurrentValue.RescanInterval, stopToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Crawler thrown error");
             }
         }
     }
@@ -210,4 +208,11 @@ public class CrawlerService : BackgroundService
             return await Puppeteer.ConnectAsync(opts).ConfigureAwait(false);
         }
     }
+
+    [GeneratedRegex("<!--seo-strip-->(.*?)<!--seo-strip-end-->", RegexOptions.IgnoreCase | RegexOptions.Singleline, "ru-RU")]
+    private static partial Regex SeoStrip1Regex();
+    [GeneratedRegex("<div class=\"seo-strip\">(.*?)<\\/div>", RegexOptions.IgnoreCase | RegexOptions.Singleline, "ru-RU")]
+    private static partial Regex SeoStrip2Regex();
+    [GeneratedRegex("<div class=\"seo-strip-2\"><\\/div>(.*?)<div class=\"seo-strip-2\"><\\/div>", RegexOptions.IgnoreCase | RegexOptions.Singleline, "ru-RU")]
+    private static partial Regex SeoStrip3Regex();
 }

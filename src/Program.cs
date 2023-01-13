@@ -1,9 +1,41 @@
+using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Rewrite;
 using SpaPrerenderer.Configs;
 using SpaPrerenderer.Services;
 using SpaPrerenderer.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Custom kestrel configuration...
+var kestrelCustomConfig = builder.Configuration.GetSection("KestrelCustom").Get<KestrelCustomConfig>();
+if (kestrelCustomConfig != null)
+{
+    builder.WebHost.ConfigureKestrel((context, serverOptions) =>
+    {
+        kestrelCustomConfig?.Endpoints?.ForEach(conf =>
+        {
+            if (conf.IsUnixSocket &&
+                (
+                    RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
+                    RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD) ||
+                    RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+                ))
+            {
+                serverOptions.ListenUnixSocket(conf.Path ?? "", listenOptions =>
+                {
+                    if (conf.Https != null)
+                        listenOptions.UseHttps(conf.Https.CertPath ?? "", conf.Https.CertPassword ?? "");
+                });
+            }
+        });
+    });
+}
+
+// Configuration
+builder.Services.Configure<CacheCrawlerConfig>(builder.Configuration.GetSection("CacheCrawler"));
+builder.Services.Configure<CommonConfig>(builder.Configuration.GetSection("Common"));
+builder.Services.Configure<SitemapConfig>(builder.Configuration.GetSection("Sitemap"));
+builder.Services.Configure<SPAConfig>(builder.Configuration.GetSection("SPA"));
 
 // Add services to the container.
 builder.Services.AddDetection();
@@ -16,11 +48,6 @@ builder.Services.AddSingleton<StorageSingletonService>();
 builder.Services.AddHttpClient();
 builder.Services.AddHostedService<CrawlerService>();
 builder.Services.AddHostedService<SitemapGeneratorService>();
-
-builder.Services.Configure<CacheCrawlerConfig>(builder.Configuration.GetSection("CacheCrawler"));
-builder.Services.Configure<CommonConfig>(builder.Configuration.GetSection("Common"));
-builder.Services.Configure<SitemapConfig>(builder.Configuration.GetSection("Sitemap"));
-builder.Services.Configure<SPAConfig>(builder.Configuration.GetSection("SPA"));
 
 var app = builder.Build();
 

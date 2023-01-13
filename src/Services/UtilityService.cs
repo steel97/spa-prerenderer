@@ -16,10 +16,10 @@ public class UtilityService : IUtilityService
 
     public void PreparePlaceholderVariants(string basePattern, ref List<PlaceholderTarget> results, SpaRoute routeLink, string[] placeholderWhitelist, KeyValuePair<string, string>[]? keys = null, int order = -1)
     {
-        var targetOrder = _commonConfig.CurrentValue?.Placeholders?.Where(a => a.Order > order && (placeholderWhitelist.Contains(a.Key) || placeholderWhitelist.Count() == 0)).OrderBy(b => b.Order).FirstOrDefault();
+        var targetOrder = _commonConfig.CurrentValue?.Placeholders?.Where(a => a.Order > order && (placeholderWhitelist.Contains(a.Key) || placeholderWhitelist.Length == 0)).OrderBy(b => b.Order).FirstOrDefault();
         if (targetOrder == null)
         {
-            if (results.Count(a => a.Url == basePattern) == 0)
+            if (!results.Any(a => a.Url == basePattern))
                 results.Add(new PlaceholderTarget
                 {
                     Url = basePattern,
@@ -33,7 +33,7 @@ public class UtilityService : IUtilityService
 
         foreach (var placeholder in _commonConfig.CurrentValue?.Placeholders!)
         {
-            if (!placeholderWhitelist.Contains(placeholder.Key) && placeholderWhitelist.Count() > 0) continue;
+            if (!placeholderWhitelist.Contains(placeholder.Key) && placeholderWhitelist.Length > 0) continue;
             if (placeholder.Order != targetOrder.Order) continue;
             if (placeholder.Targets == null) continue;
 
@@ -45,7 +45,7 @@ public class UtilityService : IUtilityService
                 if (keys != null)
                     ck.AddRange(keys);
 
-                if (possibleTarget != basePattern && ck.Where(a => a.Key == placeholder.Key).Count() == 0)
+                if (possibleTarget != basePattern && !ck.Where(a => a.Key == placeholder.Key).Any())
                     ck.Add(new KeyValuePair<string, string>(placeholder.Key ?? "", target));
 
                 PreparePlaceholderVariants(possibleTarget, ref results, routeLink, placeholderWhitelist, ck.ToArray(), placeholder.Order);

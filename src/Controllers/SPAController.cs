@@ -10,7 +10,7 @@ using SpaPrerenderer.Services;
 namespace SpaPrerenderer.Controllers;
 
 [Controller]
-public class SPAController : ControllerBase
+public partial class SPAController : ControllerBase
 {
     private readonly ILogger _logger;
     private readonly IDetectionService _detectionService;
@@ -92,7 +92,7 @@ public class SPAController : ControllerBase
         // internal specific
         var inp = "/" + url;
 
-        var reg1 = new Regex(@"([a-z]+)\/coin\/sero\/?$");
+        var reg1 = SeroRedirectRegex();
         if (reg1.IsMatch(inp))
         {
             var matches = reg1.Matches(inp);
@@ -101,13 +101,13 @@ public class SPAController : ControllerBase
                 var groups = matches[0].Groups;
                 if (groups.Count > 1)
                 {
-                    _301target = $"/{groups[1].ToString()}/coin/veil";
+                    _301target = $"/{groups[1]}/coin/veil";
                     skipCrawlerCheck = true;
                 }
             }
         }
 
-        var reg2 = new Regex(@"([a-z]+)\/coin\/btg\/?$");
+        var reg2 = BtgRedirectRegex();
         if (reg2.IsMatch(inp))
         {
             var matches = reg2.Matches(inp);
@@ -116,13 +116,13 @@ public class SPAController : ControllerBase
                 var groups = matches[0].Groups;
                 if (groups.Count > 1)
                 {
-                    _301target = $"/{groups[1].ToString()}/coin/aion";
+                    _301target = $"/{groups[1]}/coin/aion";
                     skipCrawlerCheck = true;
                 }
             }
         }
 
-        var reg3 = new Regex(@"([a-z]+)\/coin\/eth\/?$");
+        var reg3 = EthRedirectRegex();
         if (reg3.IsMatch(inp))
         {
             var matches = reg3.Matches(inp);
@@ -131,13 +131,13 @@ public class SPAController : ControllerBase
                 var groups = matches[0].Groups;
                 if (groups.Count > 1)
                 {
-                    _301target = $"/{groups[1].ToString()}/coin/ethw";
+                    _301target = $"/{groups[1]}/coin/ethw";
                     skipCrawlerCheck = true;
                 }
             }
         }
 
-        var reg4 = new Regex(@"([a-z]+)\/coin\/mwc\/?$");
+        var reg4 = MwcRedirectRegex();
         if (reg4.IsMatch(inp))
         {
             var matches = reg4.Matches(inp);
@@ -146,13 +146,13 @@ public class SPAController : ControllerBase
                 var groups = matches[0].Groups;
                 if (groups.Count > 1)
                 {
-                    _301target = $"/{groups[1].ToString()}/coin/ctxc";
+                    _301target = $"/{groups[1]}/coin/ctxc";
                     skipCrawlerCheck = true;
                 }
             }
         }
 
-        var reg5 = new Regex(@"([a-z]+)\/coin\/grin\/?$");
+        var reg5 = GrinRedirectRegex();
         if (reg5.IsMatch(inp))
         {
             var matches = reg5.Matches(inp);
@@ -161,13 +161,13 @@ public class SPAController : ControllerBase
                 var groups = matches[0].Groups;
                 if (groups.Count > 1)
                 {
-                    _301target = $"/{groups[1].ToString()}/coin/ctxc";
+                    _301target = $"/{groups[1]}/coin/ctxc";
                     skipCrawlerCheck = true;
                 }
             }
         }
 
-        var reg8 = new Regex(@"([a-z]+)\/coin\/pink\/?$");
+        var reg8 = PinkRedirectRegex();
         if (reg8.IsMatch(inp))
         {
             var matches = reg8.Matches(inp);
@@ -176,13 +176,13 @@ public class SPAController : ControllerBase
                 var groups = matches[0].Groups;
                 if (groups.Count > 1)
                 {
-                    _301target = $"/{groups[1].ToString()}/coin/ethw";
+                    _301target = $"/{groups[1]}/coin/ethw";
                     skipCrawlerCheck = true;
                 }
             }
         }
 
-        var reg9 = new Regex(@"([a-z]+)\/coin\/ethf\/?$");
+        var reg9 = EthfRedirectRegex();
         if (reg9.IsMatch(inp))
         {
             var matches = reg9.Matches(inp);
@@ -191,13 +191,13 @@ public class SPAController : ControllerBase
                 var groups = matches[0].Groups;
                 if (groups.Count > 1)
                 {
-                    _301target = $"/{groups[1].ToString()}/coin/ethw";
+                    _301target = $"/{groups[1]}/coin/ethw";
                     skipCrawlerCheck = true;
                 }
             }
         }
 
-        var reg10 = new Regex(@"([a-z]+)\/coin\/xmr\/?$");
+        var reg10 = XmrRedirectRegex();
         if (reg10.IsMatch(inp))
         {
             var matches = reg10.Matches(inp);
@@ -206,13 +206,13 @@ public class SPAController : ControllerBase
                 var groups = matches[0].Groups;
                 if (groups.Count > 1)
                 {
-                    _301target = $"/{groups[1].ToString()}/coin/rtm";
+                    _301target = $"/{groups[1]}/coin/rtm";
                     skipCrawlerCheck = true;
                 }
             }
         }
 
-        var reg11 = new Regex(@"([a-z]+)\/coin\/aion\/?$");
+        var reg11 = AionRedirectRegex();
         if (reg11.IsMatch(inp))
         {
             var matches = reg11.Matches(inp);
@@ -221,13 +221,13 @@ public class SPAController : ControllerBase
                 var groups = matches[0].Groups;
                 if (groups.Count > 1)
                 {
-                    _301target = $"/{groups[1].ToString()}/coin/firo";
+                    _301target = $"/{groups[1]}/coin/firo";
                     skipCrawlerCheck = true;
                 }
             }
         }
 
-        var reg6 = new Regex(@"([a-z]+)\/crypto-exchanges\/ftx\/?$");
+        var reg6 = FtxEchangeRedirectRegex();
         if (reg6.IsMatch(inp))
         {
             var matches = reg6.Matches(inp);
@@ -236,13 +236,13 @@ public class SPAController : ControllerBase
                 var groups = matches[0].Groups;
                 if (groups.Count > 1)
                 {
-                    _301target = $"/{groups[1].ToString()}/crypto-exchanges/bybit";
+                    _301target = $"/{groups[1]}/crypto-exchanges/bybit";
                     skipCrawlerCheck = true;
                 }
             }
         }
 
-        var reg0 = new Regex(@"([a-z]+)\/crypto-exchanges\/bingx\/?$");
+        var reg0 = BingxExchangeRedirectRegex();
         if (reg0.IsMatch(inp))
         {
             var matches = reg0.Matches(inp);
@@ -251,7 +251,7 @@ public class SPAController : ControllerBase
                 var groups = matches[0].Groups;
                 if (groups.Count > 1)
                 {
-                    _301target = $"/{groups[1].ToString()}/crypto-exchanges/mexc";
+                    _301target = $"/{groups[1]}/crypto-exchanges/mexc";
                     skipCrawlerCheck = true;
                 }
             }
@@ -263,7 +263,7 @@ public class SPAController : ControllerBase
             skipCrawlerCheck = true;
         }
 
-        var reg7 = new Regex(@"^\/?$");
+        var reg7 = PageDefaultRegex();
         if (reg7.IsMatch(inp))
         {
             _301target = $"/en";
@@ -278,7 +278,7 @@ public class SPAController : ControllerBase
             if (!_cacheService.SPACache.TryGetValue("index", out indexPage))
             {
                 indexPage = System.IO.File.ReadAllText("./wwwroot/index.html");
-                _cacheService.SPACache.Set<string>("index", indexPage, new MemoryCacheEntryOptions
+                _cacheService.SPACache.Set("index", indexPage, new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(_commonConfig.CacheHTMLInterval)
                 });
@@ -297,7 +297,7 @@ public class SPAController : ControllerBase
             var returnContent = _cacheService.GetPageContents("/" + url);
             if (returnContent == null)
             {
-                _logger.LogWarning($"Missing cache for /{url}");
+                _logger.LogWarning("Missing cache for {url}", $"/{url}");
                 returnContent = indexPage;
             }
             return new ContentResult
@@ -316,4 +316,29 @@ public class SPAController : ControllerBase
             Content = indexPage
         };
     }
+
+    [GeneratedRegex("([a-z]+)\\/coin\\/sero\\/?$")]
+    private static partial Regex SeroRedirectRegex();
+    [GeneratedRegex("([a-z]+)\\/coin\\/btg\\/?$")]
+    private static partial Regex BtgRedirectRegex();
+    [GeneratedRegex("([a-z]+)\\/coin\\/eth\\/?$")]
+    private static partial Regex EthRedirectRegex();
+    [GeneratedRegex("([a-z]+)\\/coin\\/mwc\\/?$")]
+    private static partial Regex MwcRedirectRegex();
+    [GeneratedRegex("([a-z]+)\\/coin\\/grin\\/?$")]
+    private static partial Regex GrinRedirectRegex();
+    [GeneratedRegex("([a-z]+)\\/coin\\/pink\\/?$")]
+    private static partial Regex PinkRedirectRegex();
+    [GeneratedRegex("([a-z]+)\\/coin\\/ethf\\/?$")]
+    private static partial Regex EthfRedirectRegex();
+    [GeneratedRegex("([a-z]+)\\/coin\\/xmr\\/?$")]
+    private static partial Regex XmrRedirectRegex();
+    [GeneratedRegex("([a-z]+)\\/coin\\/aion\\/?$")]
+    private static partial Regex AionRedirectRegex();
+    [GeneratedRegex("([a-z]+)\\/crypto-exchanges\\/ftx\\/?$")]
+    private static partial Regex FtxEchangeRedirectRegex();
+    [GeneratedRegex("([a-z]+)\\/crypto-exchanges\\/bingx\\/?$")]
+    private static partial Regex BingxExchangeRedirectRegex();
+    [GeneratedRegex("^\\/?$")]
+    private static partial Regex PageDefaultRegex();
 }

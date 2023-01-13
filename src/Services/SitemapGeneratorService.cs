@@ -79,7 +79,7 @@ public class SitemapGeneratorService : BackgroundService
                 foreach (var route in _sitemapConfig.CurrentValue.Routes)
                 {
                     var basePattern = route.Pattern ?? "";
-                    _utilityService.PreparePlaceholderVariants(basePattern, ref sitemapTargets, route, new string[] { });
+                    _utilityService.PreparePlaceholderVariants(basePattern, ref sitemapTargets, route, Array.Empty<string>());
                 }
 
 
@@ -116,7 +116,7 @@ public class SitemapGeneratorService : BackgroundService
                             var alternateLookup = _sitemapConfig.CurrentValue.Alternates?.Where(a => a.Id == alternate).FirstOrDefault();
                             if (alternateLookup == null)
                             {
-                                _logger.LogWarning($"Can't find alternate definition with id: {alternate}");
+                                _logger.LogWarning("Can't find alternate definition with id: {id}", alternate);
                                 continue;
                             }
                             if (!alternateLookup.WithVariants)
@@ -202,16 +202,18 @@ public class SitemapGeneratorService : BackgroundService
                 // set actual sitemap
                 var sitemap = new XDocument(new XDeclaration("1.0", "utf-8", "yes"), new XElement(_nameSpace + "urlset", vset));
 
-                var xws = new XmlWriterSettings();
-                xws.OmitXmlDeclaration = false;
-                xws.Indent = true;
-                xws.Async = true;
-                xws.Encoding = Encoding.UTF8;
+                var xws = new XmlWriterSettings
+                {
+                    OmitXmlDeclaration = false,
+                    Indent = true,
+                    Async = true,
+                    Encoding = Encoding.UTF8
+                };
 
                 using TextWriter sw = new Utf8StringWriter();
                 await sitemap.SaveAsync(sw, SaveOptions.None, stopToken);
 
-                _cacheService.FilesCache.Set<string>("sitemap.xml", sw.ToString() ?? "");
+                _cacheService.FilesCache.Set("sitemap.xml", sw.ToString() ?? "");
 
 
                 _storageSingletonService.SitemapCycles++;

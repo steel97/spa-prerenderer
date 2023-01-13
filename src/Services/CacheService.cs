@@ -45,7 +45,7 @@ public class CacheService
         if (_spaConfig.CurrentValue.NotFound == null || _spaConfig.CurrentValue.NotFound.KnownRoutes == null) return;
 
         // actually bad thing, should me moved to service later
-        Task.Factory.StartNew(() =>
+        _ = Task.Factory.StartNew(() =>
         {
             var routesCachePath = "./cache/known_routes.json";
             try
@@ -67,7 +67,7 @@ public class CacheService
                     ArgumentNullException.ThrowIfNull(route);
                     ArgumentNullException.ThrowIfNull(route.Pattern);
 
-                    _utilityService.PreparePlaceholderVariants(route.Pattern, ref localRoutes, route, new string[] { });
+                    _utilityService.PreparePlaceholderVariants(route.Pattern, ref localRoutes, route, Array.Empty<string>());
                 }
 
                 // cache known routes
@@ -88,8 +88,7 @@ public class CacheService
         var hash = _cryptoService.ComputeStringHash(path);
         if (_crawlerConfig.CurrentValue.CacheToMemory)
         {
-            string? res = null;
-            if (CrawlerCache.TryGetValue<string>(hash, out res))
+            if (CrawlerCache.TryGetValue(hash, out string? res))
                 return res;
         }
 

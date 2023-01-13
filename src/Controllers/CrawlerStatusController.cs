@@ -12,5 +12,5 @@ public class CrawlerStatusController : ControllerBase
 
 
     [HttpGet("/spa-prerenderer/status", Order = 0)]
-    public StorageSingletonService Index(string url) => _storageSingletonService;
+    public StorageSingletonService Index() => _storageSingletonService;
 }
