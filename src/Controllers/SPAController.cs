@@ -92,6 +92,29 @@ public partial class SPAController : ControllerBase
         // internal specific
         var inp = "/" + url;
 
+
+        //https://t.me/woolypooly
+        var tmereg = TelegramRegex();
+        if (tmereg.IsMatch(inp))
+        {
+            _301target = $"https://t.me/woolypooly";
+            skipCrawlerCheck = true;
+        }
+        //https://t.me/woolypoolyru
+        var tmerureg = TelegramRuRegex();
+        if (tmerureg.IsMatch(inp))
+        {
+            _301target = $"https://t.me/woolypoolyru";
+            skipCrawlerCheck = true;
+        }
+        //https://discord.com/invite/A476e5r
+        var disreg = DiscordRegex();
+        if (disreg.IsMatch(inp))
+        {
+            _301target = $"https://discord.com/invite/A476e5r";
+            skipCrawlerCheck = true;
+        }
+
         var reg1 = SeroRedirectRegex();
         if (reg1.IsMatch(inp))
         {
@@ -316,6 +339,13 @@ public partial class SPAController : ControllerBase
             Content = indexPage
         };
     }
+
+    [GeneratedRegex("telegram\\/?$")]
+    private static partial Regex TelegramRegex();
+    [GeneratedRegex("telegramru\\/?$")]
+    private static partial Regex TelegramRuRegex();
+    [GeneratedRegex("discord\\/?$")]
+    private static partial Regex DiscordRegex();
 
     [GeneratedRegex("([a-z]+)\\/coin\\/sero\\/?$")]
     private static partial Regex SeroRedirectRegex();
