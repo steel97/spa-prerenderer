@@ -73,6 +73,9 @@ public partial class SPAController : ControllerBase
             if (!foundRoute) matchNotFound = true;
         }
 
+        // internal specific
+        var inp = "/" + url;
+
         if (matchNotFound) url = "404";
 
         // redirects
@@ -88,9 +91,6 @@ public partial class SPAController : ControllerBase
                 }
             }
         }
-
-        // internal specific
-        var inp = "/" + url;
 
 
         //https://t.me/woolypooly
