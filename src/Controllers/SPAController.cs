@@ -250,6 +250,36 @@ public partial class SPAController : ControllerBase
             }
         }
 
+        var reg12 = VeilRedirectRegex();
+        if (reg12.IsMatch(inp))
+        {
+            var matches = reg12.Matches(inp);
+            if (matches.Count > 0)
+            {
+                var groups = matches[0].Groups;
+                if (groups.Count > 1)
+                {
+                    _301target = $"/{groups[1]}/coin/firo";
+                    skipCrawlerCheck = true;
+                }
+            }
+        }
+
+        var reg13 = FluxRedirectRegex();
+        if (reg13.IsMatch(inp))
+        {
+            var matches = reg13.Matches(inp);
+            if (matches.Count > 0)
+            {
+                var groups = matches[0].Groups;
+                if (groups.Count > 1)
+                {
+                    _301target = $"/{groups[1]}/coin/firo";
+                    skipCrawlerCheck = true;
+                }
+            }
+        }
+
         var reg6 = FtxEchangeRedirectRegex();
         if (reg6.IsMatch(inp))
         {
@@ -365,6 +395,11 @@ public partial class SPAController : ControllerBase
     private static partial Regex XmrRedirectRegex();
     [GeneratedRegex("([a-z]+)\\/coin\\/aion\\/?$")]
     private static partial Regex AionRedirectRegex();
+    [GeneratedRegex("([a-z]+)\\/coin\\/veil\\/?$")]
+    private static partial Regex VeilRedirectRegex();
+    [GeneratedRegex("([a-z]+)\\/coin\\/zel\\/?$")]
+    private static partial Regex FluxRedirectRegex();
+    // exchanges
     [GeneratedRegex("([a-z]+)\\/crypto-exchanges\\/ftx\\/?$")]
     private static partial Regex FtxEchangeRedirectRegex();
     [GeneratedRegex("([a-z]+)\\/crypto-exchanges\\/bingx\\/?$")]
