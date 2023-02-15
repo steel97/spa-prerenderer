@@ -88,6 +88,7 @@ public class SitemapGeneratorService : BackgroundService
                 foreach (var target in sitemapTargets)
                 {
                     var targetUrl = _sitemapConfig.CurrentValue.BaseUrl + target.Url;
+                    if (targetUrl.Contains('{')) continue;
 
                     // adding elements
                     var baseAddress = new XElement(_nameSpace + "url");
@@ -129,7 +130,8 @@ public class SitemapGeneratorService : BackgroundService
                                         var val = elProp.Value ?? "";
                                         // replace placeholders {__url} only here
                                         val = val.Replace("{__url}", targetUrl);
-                                        element.Add(new XAttribute(elProp.Name ?? "", val));
+                                        if (!val.Contains('{'))
+                                            element.Add(new XAttribute(elProp.Name ?? "", val));
                                     }
                                 }
 
@@ -148,7 +150,10 @@ public class SitemapGeneratorService : BackgroundService
                                 {
                                     var ph = vr.Split(':');
                                     if (ph[1] == "current")
-                                        variants.Add(ph[0]);
+                                    {
+                                        if (!ph[0].Contains('{'))
+                                            variants.Add(ph[0]);
+                                    }
                                 }
                             }
 
@@ -184,8 +189,8 @@ public class SitemapGeneratorService : BackgroundService
                                             }
                                         }
 
-
-                                        element.Add(new XAttribute(elProp.Name ?? "", val));
+                                        if (!val.Contains('{'))
+                                            element.Add(new XAttribute(elProp.Name ?? "", val));
                                     }
                                 }
 
