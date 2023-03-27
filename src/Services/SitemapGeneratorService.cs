@@ -122,7 +122,7 @@ public class SitemapGeneratorService : BackgroundService
                             }
                             if (!alternateLookup.WithVariants)
                             {
-                                var element = new XElement(_nameSpaceAlternate + (alternateLookup.TagName ?? ""));
+                                var element = new XElement(_nameSpace + (alternateLookup.TagName ?? ""));
                                 if (alternateLookup.Props != null)
                                 {
                                     foreach (var elProp in alternateLookup.Props)
@@ -161,7 +161,7 @@ public class SitemapGeneratorService : BackgroundService
                             //var variantedUrls = sitemapTargets.Where(a => a.RouteLink == target.RouteLink).ToList();
                             foreach (var currentUrl in variantedUrls)
                             {
-                                var element = new XElement(_nameSpaceAlternate + (alternateLookup.TagName ?? ""));
+                                var element = new XElement(_nameSpace + (alternateLookup.TagName ?? ""));
 
                                 if (alternateLookup.Props != null)
                                 {
