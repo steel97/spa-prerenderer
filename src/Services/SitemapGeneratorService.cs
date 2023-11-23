@@ -141,7 +141,7 @@ public class SitemapGeneratorService : BackgroundService
 
                             //foreach (var variant in alternateLookup.Variants)
                             //{
-                            var tPattern = target.RouteLink.Pattern;
+                            var tPattern = target?.RouteLink.Pattern;
                             var variantedUrls = new List<PlaceholderTarget>();
                             var variants = new List<string>();
                             if (alternateLookup.Variants != null)
@@ -157,7 +157,7 @@ public class SitemapGeneratorService : BackgroundService
                                 }
                             }
 
-                            _utilityService.PreparePlaceholderVariants(target.RouteLink.Pattern ?? "", ref variantedUrls, target.RouteLink, variants.ToArray());
+                            _utilityService.PreparePlaceholderVariants(target?.RouteLink.Pattern ?? "", ref variantedUrls, target!.RouteLink, variants.ToArray());
                             //var variantedUrls = sitemapTargets.Where(a => a.RouteLink == target.RouteLink).ToList();
                             foreach (var currentUrl in variantedUrls)
                             {
@@ -168,9 +168,9 @@ public class SitemapGeneratorService : BackgroundService
                                     foreach (var elProp in alternateLookup.Props)
                                     {
                                         var val = elProp.Value ?? "";
-                                        val = val.Replace("{__url_variant}", _sitemapConfig.CurrentValue.BaseUrl + currentUrl.Url);
+                                        val = val.Replace("{__url_variant}", _sitemapConfig.CurrentValue.BaseUrl + currentUrl?.Url);
 
-                                        if (target.UsedPlaceholders != null)
+                                        if (target?.UsedPlaceholders != null)
                                             foreach (var currentPlaceholder in target.UsedPlaceholders)
                                                 val = val.Replace($"{{__{currentPlaceholder.Key}}}", currentPlaceholder.Value);
 

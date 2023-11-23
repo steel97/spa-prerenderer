@@ -38,13 +38,13 @@ public partial class CrawlerService : BackgroundService
         BrowserFetcher? browserFetcher = null;
         try
         {
-            browserFetcher = new(Product.Chrome);
+            browserFetcher = new(SupportedBrowser.Chrome);
             var browserInfo = await browserFetcher.DownloadAsync();
-            _logger.LogInformation("Using browser {platform} {revision}", browserInfo.Platform, browserInfo.Revision);
+            _logger.LogInformation("Using browser {platform} {revision}", browserInfo.Platform, browserInfo.BuildId);
         }
-        catch
+        catch (Exception ex)
         {
-            _logger.LogError("Can't download browser!");
+            _logger.LogError(ex, "Can't download browser!");
         }
 
         using var client = _httpClientFactory.CreateClient();
@@ -171,14 +171,14 @@ public partial class CrawlerService : BackgroundService
             }
         }
     }
-    private async Task<Browser> GetBrowserInstance()
+    private async Task<IBrowser> GetBrowserInstance()
     {
         if (_crawlerConfig.CurrentValue.Puppeteer?.BrowserSource == "local")
             return await Puppeteer.LaunchAsync(
                             new LaunchOptions
                             {
                                 Headless = _crawlerConfig.CurrentValue.Puppeteer.Headless,
-                                Product = Product.Chrome,
+                                Browser = SupportedBrowser.Chrome,
                                 DefaultViewport = new ViewPortOptions
                                 {
                                     Width = 32,

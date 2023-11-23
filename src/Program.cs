@@ -72,16 +72,14 @@ app.UseStaticFiles(new StaticFileOptions
 
 
 app.UseRouting();
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllerRoute(
-        name: "SPA",
-        pattern: "{*url}",
-        defaults: new
-        {
-            controller = "SPA",
-            action = "Index"
-        });
-});
+app.MapControllerRoute(
+    name: "SPA",
+    pattern: "{*url}",
+    defaults: new
+    {
+        controller = "SPA",
+        action = "Index"
+    }
+);
 
 app.Run();
