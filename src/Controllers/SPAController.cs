@@ -310,6 +310,21 @@ public partial class SPAController : ControllerBase
             }
         }
 
+        var reg16 = HtnRedirectRegex();
+        if (reg16.IsMatch(inp))
+        {
+            var matches = reg16.Matches(inp);
+            if (matches.Count > 0)
+            {
+                var groups = matches[0].Groups;
+                if (groups.Count > 1)
+                {
+                    _301target = $"/{groups[1]}/coin/kls";
+                    skipCrawlerCheck = true;
+                }
+            }
+        }
+
         var reg6 = FtxEchangeRedirectRegex();
         if (reg6.IsMatch(inp))
         {
@@ -433,6 +448,8 @@ public partial class SPAController : ControllerBase
     private static partial Regex KvaRedirectRegex();
     [GeneratedRegex("([a-z]+)\\/coin\\/pyi\\/?$")]
     private static partial Regex PyiRedirectRegex();
+    [GeneratedRegex("([a-z]+)\\/coin\\/htn\\/?$")]
+    private static partial Regex HtnRedirectRegex();
     // exchanges
     [GeneratedRegex("([a-z]+)\\/crypto-exchanges\\/ftx\\/?$")]
     private static partial Regex FtxEchangeRedirectRegex();
