@@ -160,7 +160,7 @@ public partial class SPAController : ControllerBase
             }
         }
 
-        var reg4 = MwcRedirectRegex();
+        /*var reg4 = MwcRedirectRegex();
         if (reg4.IsMatch(inp))
         {
             var matches = reg4.Matches(inp);
@@ -173,7 +173,7 @@ public partial class SPAController : ControllerBase
                     skipCrawlerCheck = true;
                 }
             }
-        }
+        }*/
 
         var reg5 = GrinRedirectRegex();
         if (reg5.IsMatch(inp))
