@@ -325,7 +325,7 @@ public partial class SPAController : ControllerBase
             }
         }
 
-        var reg17 = HtnRedirectRegex();
+        var reg17 = BlocxRedirectRegex();
         if (reg17.IsMatch(inp))
         {
             var matches = reg17.Matches(inp);
